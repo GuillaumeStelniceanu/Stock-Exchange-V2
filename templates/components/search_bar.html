@@ -1,0 +1,76 @@
+<!-- templates/components/search_bar.html -->
+<!-- Enhanced Search Bar Component -->
+<div class="search-bar-component">
+    <div class="search-bar-container">
+        <span class="search-bar-icon">
+            <i class="fas fa-search"></i>
+        </span>
+        <input type="text" 
+               class="search-bar-input"
+               id="{% if input_id %}{{ input_id }}{% else %}search-input{% endif %}"
+               placeholder="{% if placeholder %}{{ placeholder }}{% else %}Rechercher une action (ex: AAPL, MSFT)...{% endif %}"
+               value="{% if value %}{{ value }}{% endif %}"
+               autocomplete="off">
+        <button class="search-bar-btn" onclick="performSearch()">
+            <i class="fas fa-chart-line me-2"></i>Analyser
+        </button>
+    </div>
+    <div id="{% if suggestions_id %}{{ suggestions_id }}{% else %}search-suggestions{% endif %}" 
+         class="search-bar-suggestions"></div>
+</div>
+
+<script>
+    function performSearch() {
+        const inputId = '{% if input_id %}{{ input_id }}{% else %}search-input{% endif %}';
+        const input = document.getElementById(inputId).value.trim().toUpperCase();
+        if (input) {
+            window.location.href = '/analyse?ticker=' + input;
+        }
+    }
+    
+    // Enter key support
+    document.getElementById('{% if input_id %}{{ input_id }}{% else %}search-input{% endif %}')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch();
+        }
+    });
+    
+    // Search suggestions
+    document.getElementById('{% if input_id %}{{ input_id }}{% else %}search-input{% endif %}')?.addEventListener('input', async function(e) {
+        const query = e.target.value.trim();
+        const suggestionsId = '{% if suggestions_id %}{{ suggestions_id }}{% else %}search-suggestions{% endif %}';
+        const suggestions = document.getElementById(suggestionsId);
+        
+        if (query.length < 2) {
+            suggestions.classList.remove('active');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            
+            if (data.suggestions && data.suggestions.length > 0) {
+                let html = '';
+                data.suggestions.forEach(item => {
+                    html += `
+                        <div class="search-suggestion-item" onclick="window.location.href='/analyse?ticker=${item.symbol}'">
+                            <div class="suggestion-main">
+                                <span class="suggestion-ticker">${item.symbol}</span>
+                                <div class="suggestion-name">${item.name}</div>
+                            </div>
+                            <span class="suggestion-badge">${item.market || 'US'}</span>
+                        </div>
+                    `;
+                });
+                suggestions.innerHTML = html;
+                suggestions.classList.add('active');
+            } else {
+                suggestions.classList.remove('active');
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+        }
+    });
+</script>

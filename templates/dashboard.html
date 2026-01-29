@@ -1,0 +1,241 @@
+<!-- templates/dashboard.html  -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Technical Analyst</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+
+    <div class="container-fluid py-4 px-3 px-md-4 px-lg-5">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/"><i class="fas fa-home me-1"></i>Accueil</a></li>
+                <li class="breadcrumb-item active">Dashboard</li>
+            </ol>
+        </nav>
+
+        <!-- Dashboard Header -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="page-header">
+                    <div class="page-header-content">
+                        <h1 class="page-title"><i class="fas fa-tachometer-alt me-3"></i>Tableau de bord</h1>
+                        <p class="page-subtitle">Vue d'ensemble des marchés et performances</p>
+                    </div>
+                    <div class="page-header-actions">
+                        <button class="btn-secondary-outline" onclick="refreshDashboard()">
+                            <i class="fas fa-sync-alt me-2"></i>Actualiser
+                        </button>
+                        <div class="dropdown">
+                            <button class="btn-primary-solid dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-cog me-2"></i>Paramètres
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-dark">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-chart-line me-2"></i>Indicateurs</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-bell me-2"></i>Alertes</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Préférences</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Market Overview -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="info-card">
+                    <h5 class="info-card-title"><i class="fas fa-globe-americas me-2"></i>Aperçu des marchés</h5>
+                    <div class="row">
+                        <!-- Source Status -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="section-subtitle">Sources de données</h6>
+                            <div class="status-badges">
+                                {% for name, stats in source_stats.items() %}
+                                <span class="status-badge {% if stats.available %}success{% else %}inactive{% endif %}">
+                                    <i class="fas fa-database me-1"></i>{{ name }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- System Status -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="section-subtitle">Statut du système</h6>
+                            <div class="system-status">
+                                <div class="status-indicator">
+                                    <span class="pulse-dot active"></span>
+                                </div>
+                                <div class="status-details">
+                                    <div class="status-text">En ligne</div>
+                                    <div class="status-time">Dernière mise à jour: {{ current_time }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Stocks -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="info-card">
+                    <h5 class="info-card-title"><i class="fas fa-star me-2"></i>Actions populaires</h5>
+                    {% if dashboard_data %}
+                    <div class="row g-3">
+                        {% for stock in dashboard_data %}
+                        <div class="col-md-4 col-lg-3">
+                            <div class="stock-mini-card" onclick="window.location.href='/analyse?ticker={{ stock.ticker }}'">
+                                <div class="stock-mini-header">
+                                    <div class="stock-mini-info">
+                                        <div class="stock-mini-ticker">{{ stock.ticker }}</div>
+                                        <div class="stock-mini-name">{{ stock.name }}</div>
+                                    </div>
+                                    <span class="stock-mini-badge">{{ stock.sector }}</span>
+                                </div>
+                                <div class="stock-mini-footer">
+                                    <div class="stock-mini-price">${{ stock.price }}</div>
+                                    <div class="stock-mini-change {% if stock.change > 0 %}positive{% else %}negative{% endif %}">
+                                        {{ '%+.2f'|format(stock.changePercent) }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-chart-line fa-3x mb-3"></i>
+                        <p>Chargement des données...</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="row mb-4 g-3">
+            <div class="col-md-6">
+                <div class="info-card h-100">
+                    <h5 class="info-card-title"><i class="fas fa-chart-pie me-2"></i>Statistiques des sources</h5>
+                    {% if source_stats %}
+                    <div class="table-responsive">
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Source</th>
+                                    <th>Requêtes</th>
+                                    <th>Succès</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for name, stats in source_stats.items() %}
+                                <tr>
+                                    <td>{{ name }}</td>
+                                    <td>{{ stats.requests }}</td>
+                                    <td>{{ stats.successes }}</td>
+                                    <td>
+                                        {% if stats.available %}
+                                        <span class="status-badge success">En ligne</span>
+                                        {% else %}
+                                        <span class="status-badge inactive">Hors ligne</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state py-4">
+                        <p>Aucune donnée disponible</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="info-card h-100">
+                    <h5 class="info-card-title"><i class="fas fa-tools me-2"></i>Outils rapides</h5>
+                    <div class="quick-tools">
+                        <button class="quick-tool-btn" onclick="window.location.href='/analyse'">
+                            <i class="fas fa-search"></i>
+                            <span>Rechercher une action</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button class="quick-tool-btn" onclick="window.location.href='/portefeuille'">
+                            <i class="fas fa-folder"></i>
+                            <span>Explorer les portefeuilles</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button class="quick-tool-btn" onclick="clearCache()">
+                            <i class="fas fa-trash-alt"></i>
+                            <span>Vider le cache</span>
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button class="quick-tool-btn" onclick="testSystem()">
+                            <i class="fas fa-heartbeat"></i>
+                            <span>Tester le système</span>
+                            <i class="fas fa-stethoscope"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% include 'components/footer.html' %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <script>
+        function refreshDashboard() {
+            window.location.reload();
+        }
+        
+        async function clearCache() {
+            try {
+                const response = await fetch('/api/system/clear_cache');
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Cache vidé avec succès!');
+                    refreshDashboard();
+                } else {
+                    alert('Erreur: ' + data.error);
+                }
+            } catch (error) {
+                alert('Erreur réseau: ' + error.message);
+            }
+        }
+        
+        async function testSystem() {
+            try {
+                const response = await fetch('/api/system/health');
+                const data = await response.json();
+                
+                let message = 'Test du système:\n';
+                message += `Statut: ${data.status}\n`;
+                message += `Sources actives: ${data.working_sources.join(', ') || 'Aucune'}\n`;
+                message += `Cache: ${data.cache_enabled ? 'Activé' : 'Désactivé'}`;
+                
+                alert(message);
+            } catch (error) {
+                alert('Erreur lors du test système: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

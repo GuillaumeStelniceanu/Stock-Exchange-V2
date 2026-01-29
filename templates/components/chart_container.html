@@ -1,0 +1,49 @@
+<!-- templates/components/chart_container.html -->
+<!-- Enhanced Chart Container Component -->
+<div class="chart-container-component" {% if id %}id="{{ id }}"{% endif %}>
+    {% if title %}
+    <div class="chart-container-header">
+        <h5 class="chart-container-title">
+            {% if icon %}<i class="fas fa-{{ icon }} me-2"></i>{% endif %}
+            {{ title }}
+        </h5>
+        {% if periods %}
+        <div class="chart-period-buttons">
+            {% for period in periods %}
+            <button class="chart-period-btn {% if loop.first %}active{% endif %}" 
+                    onclick="changePeriod('{{ period }}')">
+                {{ period }}
+            </button>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <div class="chart-container-content" {% if chart_id %}id="{{ chart_id }}"{% else %}id="chart-content"{% endif %}>
+        <!-- Chart will be rendered here by Plotly/Chart.js -->
+    </div>
+    
+    {% if footer %}
+    <div class="chart-container-footer">
+        {{ footer }}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function changePeriod(period) {
+        // Update active button
+        const buttons = document.querySelectorAll('.chart-period-btn');
+        buttons.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.textContent.trim() === period) {
+                btn.classList.add('active');
+            }
+        });
+        
+        // Trigger period change event
+        const event = new CustomEvent('periodChanged', { detail: { period: period }});
+        document.dispatchEvent(event);
+    }
+</script>

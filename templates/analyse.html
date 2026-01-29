@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse - {% if stats %}{{ stats.company }}{% else %}Recherche{% endif %} | Technical Analyst</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+
+    <div class="container-fluid py-4 px-3 px-md-4 px-lg-5">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/"><i class="fas fa-home me-1"></i>Accueil</a></li>
+                <li class="breadcrumb-item"><a href="/analyse">Analyse</a></li>
+                {% if stats %}
+                <li class="breadcrumb-item active">{{ stats.ticker }}</li>
+                {% endif %}
+            </ol>
+        </nav>
+
+        <!-- Search Section -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="search-box-large">
+                    <div class="search-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <input type="text" 
+                           class="search-input-large" 
+                           id="searchInput" 
+                           placeholder="Rechercher une action (ex: AAPL, TTE.PA)..." 
+                           value="{% if stats %}{{ stats.ticker }}{% endif %}"
+                           autocomplete="off">
+                    <button class="btn-search-large" onclick="searchStock()">
+                        <i class="fas fa-chart-line me-2"></i>Analyser
+                    </button>
+                </div>
+                <div id="search-suggestions" class="search-suggestions-dropdown"></div>
+            </div>
+        </div>
+
+        {% if error %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert-box alert-error">
+                    <div class="alert-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <h5 class="alert-title">Erreur de chargement</h5>
+                        <p class="alert-message">{{ error }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if stats %}
+        <!-- Stock Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="stock-header-card">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="stock-company-name">{{ stats.company }}</h1>
+                            <div class="stock-meta">
+                                <span class="stock-ticker-large">{{ stats.ticker }}</span>
+                                {% if stats.basic_info.sector %}
+                                <span class="stock-badge">{{ stats.basic_info.sector }}</span>
+                                {% endif %}
+                                {% if stats.basic_info.currency %}
+                                <span class="stock-currency">{{ stats.basic_info.currency }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="stock-price-container">
+                                <div class="stock-price-value">${{ stats.last_price }}</div>
+                                <div class="stock-price-change {% if stats.change_1d > 0 %}positive{% else %}negative{% endif %}">
+                                    {{ '%+.2f'|format(stats.change_1d) }}%
+                                </div>
+                                <div class="stock-price-date">{{ stats.last_date }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Statistics Grid -->
+        <div class="row mb-4 g-3">
+            <div class="col-md-3">
+                <div class="indicator-card">
+                    <div class="indicator-label">RSI (14)</div>
+                    <div class="indicator-value">{{ stats.rsi if stats.rsi else 'N/A' }}</div>
+                    {% if stats.rsi %}
+                        {% if stats.rsi > 70 %}
+                        <span class="indicator-status danger">Surachat</span>
+                        {% elif stats.rsi < 30 %}
+                        <span class="indicator-status success">Sous-vente</span>
+                        {% else %}
+                        <span class="indicator-status neutral">Neutre</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="indicator-card">
+                    <div class="indicator-label">MA20</div>
+                    <div class="indicator-value">${{ stats.ma_20 if stats.ma_20 else 'N/A' }}</div>
+                    {% if stats.ma_20 and stats.last_price %}
+                        {% set ma20_diff = ((stats.last_price - stats.ma_20) / stats.ma_20 * 100) %}
+                        <span class="indicator-status {% if ma20_diff > 0 %}success{% else %}danger{% endif %}">
+                            {{ '%+.1f'|format(ma20_diff) }}%
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="indicator-card">
+                    <div class="indicator-label">MA50</div>
+                    <div class="indicator-value">${{ stats.ma_50 if stats.ma_50 else 'N/A' }}</div>
+                    {% if stats.ma_50 and stats.last_price %}
+                        {% set ma50_diff = ((stats.last_price - stats.ma_50) / stats.ma_50 * 100) %}
+                        <span class="indicator-status {% if ma50_diff > 0 %}success{% else %}danger{% endif %}">
+                            {{ '%+.1f'|format(ma50_diff) }}%
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="indicator-card">
+                    <div class="indicator-label">Volume</div>
+                    <div class="indicator-value">
+                        {% if stats.volume > 1000000 %}
+                            {{ '%.1f'|format(stats.volume/1000000) }}M
+                        {% elif stats.volume > 1000 %}
+                            {{ '%.1f'|format(stats.volume/1000) }}K
+                        {% else %}
+                            {{ stats.volume }}
+                        {% endif %}
+                    </div>
+                    {% if stats.avg_volume %}
+                        {% set volume_ratio = (stats.volume / stats.avg_volume * 100) %}
+                        <span class="indicator-status {% if volume_ratio > 100 %}success{% else %}warning{% endif %}">
+                            {{ '%.0f'|format(volume_ratio) }}% avg
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Indicators -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="info-card">
+                    <h5 class="info-card-title"><i class="fas fa-chart-bar me-2"></i>Indicateurs Techniques</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="info-item">
+                                <span class="info-label">Volatilité (annuelle)</span>
+                                <span class="info-value">{{ stats.volatility if stats.volatility else 'N/A' }}%</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">52W High</span>
+                                <span class="info-value">${{ stats.high_52w if stats.high_52w else 'N/A' }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-item">
+                                <span class="info-label">Bêta</span>
+                                <span class="info-value">{{ stats.beta if stats.beta else 'N/A' }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">52W Low</span>
+                                <span class="info-value">${{ stats.low_52w if stats.low_52w else 'N/A' }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-item">
+                                <span class="info-label">P/E Ratio</span>
+                                <span class="info-value">{{ stats.basic_info.peRatio if stats.basic_info.peRatio else 'N/A' }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Dividende</span>
+                                <span class="info-value">{{ stats.basic_info.dividendYield if stats.basic_info.dividendYield else '0.0' }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trading Signals -->
+        {% if signals %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="info-card">
+                    <h5 class="info-card-title"><i class="fas fa-bullhorn me-2"></i>Signaux de Trading</h5>
+                    <div class="row g-3">
+                        {% for signal in signals %}
+                        <div class="col-md-4">
+                            <div class="trading-signal {% if 'Achat' in signal[0] or 'Haussière' in signal[0] or 'success' in signal[1] %}buy{% elif 'Vente' in signal[0] or 'Baissière' in signal[0] or 'danger' in signal[1] %}sell{% else %}neutral{% endif %}">
+                                <div class="signal-title">{{ signal[0] }}</div>
+                                <div class="signal-description">{{ signal[3] }}</div>
+                                {% if signal[2] %}
+                                <div class="signal-value">{{ '%.2f'|format(signal[2]) }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Price Chart -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h5 class="chart-title"><i class="fas fa-chart-line me-2"></i>Graphique des Prix</h5>
+                        <div class="chart-period-selector">
+                            <button class="period-btn" onclick="changePeriod('1mo')">1M</button>
+                            <button class="period-btn" onclick="changePeriod('3mo')">3M</button>
+                            <button class="period-btn active" onclick="changePeriod('6mo')">6M</button>
+                            <button class="period-btn" onclick="changePeriod('1y')">1A</button>
+                            <button class="period-btn" onclick="changePeriod('2y')">2A</button>
+                        </div>
+                    </div>
+                    <div id="priceChart" class="chart-content"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MACD Chart -->
+        {% if indicators and indicators.macd %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h5 class="chart-title"><i class="fas fa-exchange-alt me-2"></i>MACD</h5>
+                    </div>
+                    <div id="macdChart" class="chart-content-small"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Historical Data Table -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="info-card">
+                    <h5 class="info-card-title"><i class="fas fa-table me-2"></i>Données Récentes</h5>
+                    <div class="table-responsive">
+                        <table class="data-table-styled">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Open</th>
+                                    <th>High</th>
+                                    <th>Low</th>
+                                    <th>Close</th>
+                                    <th>Volume</th>
+                                    <th>RSI</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for data in chart_data %}
+                                {% if loop.index > (chart_data|length - 10) %}
+                                <tr>
+                                    <td>{{ data.date }}</td>
+                                    <td>${{ '%.2f'|format(data.open) }}</td>
+                                    <td>${{ '%.2f'|format(data.high) }}</td>
+                                    <td>${{ '%.2f'|format(data.low) }}</td>
+                                    <td class="fw-bold">${{ '%.2f'|format(data.close) }}</td>
+                                    <td>
+                                        {% if data.volume > 1000000 %}
+                                            {{ '%.1f'|format(data.volume/1000000) }}M
+                                        {% elif data.volume > 1000 %}
+                                            {{ '%.1f'|format(data.volume/1000) }}K
+                                        {% else %}
+                                            {{ data.volume }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="{% if data.rsi and data.rsi > 70 %}text-danger{% elif data.rsi and data.rsi < 30 %}text-success{% endif %}">
+                                        {{ '%.1f'|format(data.rsi) if data.rsi else '-' }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if demo_mode %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert-box alert-warning">
+                    <div class="alert-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <h5 class="alert-title">Mode Démonstration</h5>
+                        <p class="alert-message">Les données affichées sont simulées. Pour des données en temps réel, veuillez configurer vos clés API.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% endif %}
+
+        {% include 'components/footer.html' %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    
+    <script>
+        function searchStock() {
+            const input = document.getElementById('searchInput').value.trim().toUpperCase();
+            if (input) {
+                const period = getCurrentPeriod();
+                window.location.href = `/analyse?ticker=${input}&period=${period}`;
+            }
+        }
+
+        function getCurrentPeriod() {
+            const activeBtn = document.querySelector('.period-btn.active');
+            return activeBtn ? activeBtn.textContent.toLowerCase().replace('m', 'mo').replace('a', 'y') : '6mo';
+        }
+
+        function changePeriod(period) {
+            const ticker = '{{ stats.ticker if stats else "" }}';
+            if (ticker) {
+                window.location.href = `/analyse?ticker=${ticker}&period=${period}`;
+            }
+        }
+
+        document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchStock();
+            }
+        });
+
+        {% if chart_data %}
+        document.addEventListener('DOMContentLoaded', function() {
+            const dates = [{% for data in chart_data %}"{{ data.date }}"{% if not loop.last %},{% endif %}{% endfor %}];
+            const opens = [{% for data in chart_data %}{{ data.open }}{% if not loop.last %},{% endif %}{% endfor %}];
+            const highs = [{% for data in chart_data %}{{ data.high }}{% if not loop.last %},{% endif %}{% endfor %}];
+            const lows = [{% for data in chart_data %}{{ data.low }}{% if not loop.last %},{% endif %}{% endfor %}];
+            const closes = [{% for data in chart_data %}{{ data.close }}{% if not loop.last %},{% endif %}{% endfor %}];
+            const volumes = [{% for data in chart_data %}{{ data.volume }}{% if not loop.last %},{% endif %}{% endfor %}];
+            const rsi = [{% for data in chart_data %}{{ data.rsi if data.rsi else 'null' }}{% if not loop.last %},{% endif %}{% endfor %}];
+            const ma20 = [{% for data in chart_data %}{{ data.ma20 if data.ma20 else 'null' }}{% if not loop.last %},{% endif %}{% endfor %}];
+            const ma50 = [{% for data in chart_data %}{{ data.ma50 if data.ma50 else 'null' }}{% if not loop.last %},{% endif %}{% endfor %}];
+            const bbUpper = [{% for data in chart_data %}{{ data.bb_upper if data.bb_upper else 'null' }}{% if not loop.last %},{% endif %}{% endfor %}];
+            const bbLower = [{% for data in chart_data %}{{ data.bb_lower if data.bb_lower else 'null' }}{% if not loop.last %},{% endif %}{% endfor %}];
+
+            const candlestickTrace = {
+                x: dates, open: opens, high: highs, low: lows, close: closes,
+                type: 'candlestick', name: 'OHLC',
+                increasing: { line: { color: '#00E676' }},
+                decreasing: { line: { color: '#FF3366' }}
+            };
+
+            const ma20Trace = { x: dates, y: ma20, type: 'scatter', mode: 'lines', name: 'MA20', line: { color: '#FFC107', width: 2 }};
+            const ma50Trace = { x: dates, y: ma50, type: 'scatter', mode: 'lines', name: 'MA50', line: { color: '#17A2B8', width: 2 }};
+
+            const layout = {
+                title: '{{ stats.company if stats else "" }} ({{ stats.ticker if stats else "" }})',
+                xaxis: { title: 'Date', rangeslider: { visible: false }},
+                yaxis: { title: 'Prix ($)'},
+                plot_bgcolor: 'transparent',
+                paper_bgcolor: 'transparent',
+                font: { color: '#FFFFFF' },
+                height: 500
+            };
+
+            Plotly.newPlot('priceChart', [candlestickTrace, ma20Trace, ma50Trace], layout);
+        });
+        {% endif %}
+    </script>
+</body>
+</html>

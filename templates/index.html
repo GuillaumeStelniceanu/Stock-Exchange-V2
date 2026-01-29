@@ -1,0 +1,332 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical Analyst - Analyse Technique Avancée</title>
+    
+    <!-- External CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <!-- Navigation -->
+    {% include 'components/navbar.html' %}
+
+    <!-- Market Ticker -->
+    <div class="market-ticker">
+        <!-- Content from navbar component -->
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container-fluid px-4">
+            <div class="row align-items-center">
+                <div class="col-lg-6 hero-content">
+                    <div class="hero-badge">
+                        <span class="pulse-dot"></span>
+                        Marchés en direct
+                    </div>
+                    <h1 class="hero-title">
+                        Analyse technique
+                        <span class="gradient-text">professionnelle</span>
+                        pour vos investissements
+                    </h1>
+                    <p class="hero-description">
+                        Accédez à des indicateurs avancés, des graphiques interactifs et 
+                        des signaux de trading en temps réel pour optimiser vos décisions d'investissement.
+                    </p>
+                    
+                    <!-- Hero Search -->
+                    <div class="hero-search">
+                        <div class="search-container">
+                            <input type="text" 
+                                   class="search-input" 
+                                   id="hero-search-input"
+                                   placeholder="Rechercher une action (ex: AAPL, TTE.PA)..."
+                                   autocomplete="off">
+                            <button class="btn btn-primary search-btn" onclick="heroSearch()">
+                                <i class="fas fa-chart-line me-2"></i>
+                                <span>Analyser</span>
+                            </button>
+                        </div>
+                        <div id="hero-suggestions" class="search-suggestions"></div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <span class="quick-label">Actions populaires:</span>
+                        <button class="quick-btn" onclick="quickAnalyze('AAPL')">
+                            <i class="fab fa-apple me-1"></i> AAPL
+                        </button>
+                        <button class="quick-btn" onclick="quickAnalyze('MSFT')">
+                            <i class="fab fa-microsoft me-1"></i> MSFT
+                        </button>
+                        <button class="quick-btn" onclick="quickAnalyze('NVDA')">
+                            <i class="fas fa-microchip me-1"></i> NVDA
+                        </button>
+                        <button class="quick-btn" onclick="quickAnalyze('TTE.PA')">
+                            <i class="fas fa-gas-pump me-1"></i> TTE
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6 hero-visual">
+                    <div class="chart-preview">
+                        <div class="chart-header-mini">
+                            <div class="chart-info">
+                                <span class="chart-symbol mono">AAPL</span>
+                                <span class="chart-price mono">$173.45</span>
+                                <span class="chart-change positive mono">+2.3%</span>
+                            </div>
+                            <div class="chart-period">1D</div>
+                        </div>
+                        <div class="mini-chart-container">
+                            <!-- Simple chart representation -->
+                            <div class="chart-line"></div>
+                        </div>
+                        <div class="chart-indicators">
+                            <div class="indicator">
+                                <span class="indicator-label">RSI</span>
+                                <span class="indicator-value">68.5</span>
+                            </div>
+                            <div class="indicator">
+                                <span class="indicator-label">MACD</span>
+                                <span class="indicator-value positive">↑ Haussier</span>
+                            </div>
+                            <div class="indicator">
+                                <span class="indicator-label">Volume</span>
+                                <span class="indicator-value">52.3M</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container-fluid px-4">
+            <div class="section-header">
+                <h2>Outils d'analyse professionnels</h2>
+                <p>Tout ce dont vous avez besoin pour prendre des décisions éclairées</p>
+            </div>
+            
+            <div class="row g-4">
+                <!-- Feature 1 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line fa-2x text-primary"></i>
+                        </div>
+                        <h3>Indicateurs avancés</h3>
+                        <p>RSI, MACD, Bollinger, Fibonacci et plus de 20 indicateurs techniques</p>
+                    </div>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-clock fa-2x text-info"></i>
+                        </div>
+                        <h3>Données en temps réel</h3>
+                        <p>Cotations actualisées et alertes personnalisées sur vos actions</p>
+                    </div>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-bullhorn fa-2x text-success"></i>
+                        </div>
+                        <h3>Signaux de trading</h3>
+                        <p>Détection automatique des opportunités d'achat et de vente</p>
+                    </div>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-bar fa-2x text-warning"></i>
+                        </div>
+                        <h3>Graphiques interactifs</h3>
+                        <p>Visualisations avancées avec outils de dessin et annotations</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Markets Section -->
+    <section class="markets-section">
+        <div class="container-fluid px-4">
+            <div class="section-header">
+                <h2>Explorez les marchés</h2>
+                <p>Actions américaines, européennes et sectorielles</p>
+            </div>
+            
+            <div class="row g-4">
+                <!-- US Market -->
+                <div class="col-lg-4">
+                    <div class="market-card">
+                        <div class="market-header">
+                            <h3>
+                                <span class="market-icon">🇺🇸</span>
+                                Marché US
+                            </h3>
+                            <span class="badge badge-us">NASDAQ</span>
+                        </div>
+                        <div class="stocks-list">
+                            {% for ticker, name in portefeuilles['US'].items() %}
+                            {% if loop.index <= 6 %}
+                            <div class="stock-item" onclick="quickAnalyze('{{ ticker }}')">
+                                <div class="stock-info">
+                                    <span class="stock-ticker mono">{{ ticker }}</span>
+                                    <span class="stock-name">{{ name }}</span>
+                                </div>
+                                <i class="fas fa-arrow-right text-secondary"></i>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        <a href="/portefeuille?market=US" class="view-all-btn">
+                            Voir toutes les actions US
+                            <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- EU Market -->
+                <div class="col-lg-4">
+                    <div class="market-card">
+                        <div class="market-header">
+                            <h3>
+                                <span class="market-icon">🇪🇺</span>
+                                Marché EU
+                            </h3>
+                            <span class="badge badge-eu">CAC 40</span>
+                        </div>
+                        <div class="stocks-list">
+                            {% for ticker, name in portefeuilles['EU'].items() %}
+                            {% if loop.index <= 6 %}
+                            <div class="stock-item" onclick="quickAnalyze('{{ ticker }}')">
+                                <div class="stock-info">
+                                    <span class="stock-ticker mono">{{ ticker }}</span>
+                                    <span class="stock-name">{{ name }}</span>
+                                </div>
+                                <i class="fas fa-arrow-right text-secondary"></i>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        <a href="/portefeuille?market=EU" class="view-all-btn">
+                            Voir toutes les actions EU
+                            <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Sectors -->
+                <div class="col-lg-4">
+                    <div class="market-card">
+                        <div class="market-header">
+                            <h3>
+                                <span class="market-icon">📊</span>
+                                Secteurs
+                            </h3>
+                            <span class="badge badge-info">ETF</span>
+                        </div>
+                        <div class="stocks-list">
+                            {% for ticker, name in portefeuilles['SECTEURS'].items() %}
+                            <div class="stock-item" onclick="quickAnalyze('{{ ticker }}')">
+                                <div class="stock-info">
+                                    <span class="stock-ticker mono">{{ ticker }}</span>
+                                    <span class="stock-name">{{ name }}</span>
+                                </div>
+                                <i class="fas fa-arrow-right text-secondary"></i>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <a href="/portefeuille?market=SECTEURS" class="view-all-btn">
+                            Voir tous les secteurs
+                            <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    {% include 'components/footer.html' %}
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <script>
+        // Hero Search
+        function heroSearch() {
+            const input = document.getElementById('hero-search-input').value.trim().toUpperCase();
+            if (input) {
+                window.location.href = `/analyse?ticker=${input}`;
+            }
+        }
+        
+        // Quick Analyze
+        function quickAnalyze(ticker) {
+            window.location.href = `/analyse?ticker=${ticker}`;
+        }
+        
+        // Enter key support
+        document.getElementById('hero-search-input')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                heroSearch();
+            }
+        });
+        
+        // Search suggestions
+        document.getElementById('hero-search-input')?.addEventListener('input', async function(e) {
+            const query = e.target.value.trim();
+            const suggestions = document.getElementById('hero-suggestions');
+            
+            if (query.length < 2) {
+                suggestions.classList.remove('active');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                if (data.suggestions && data.suggestions.length > 0) {
+                    let html = '';
+                    data.suggestions.forEach(item => {
+                        html += `
+                            <div class="suggestion-item" onclick="quickAnalyze('${item.symbol}')">
+                                <div>
+                                    <span class="ticker-badge mono">${item.symbol}</span>
+                                    <div class="text-muted small">${item.name}</div>
+                                </div>
+                                <span class="badge badge-${item.market ? item.market.toLowerCase() : 'us'}">${item.market || 'US'}</span>
+                            </div>
+                        `;
+                    });
+                    suggestions.innerHTML = html;
+                    suggestions.classList.add('active');
+                } else {
+                    suggestions.classList.remove('active');
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
