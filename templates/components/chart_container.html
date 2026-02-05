@@ -1,49 +1,165 @@
 <!-- templates/components/chart_container.html -->
-<!-- Enhanced Chart Container Component -->
-<div class="chart-container-component" {% if id %}id="{{ id }}"{% endif %}>
-    {% if title %}
+<div class="chart-container-wrapper" {% if container_id %}id="{{ container_id }}"{% endif %}>
     <div class="chart-container-header">
-        <h5 class="chart-container-title">
-            {% if icon %}<i class="fas fa-{{ icon }} me-2"></i>{% endif %}
-            {{ title }}
-        </h5>
-        {% if periods %}
-        <div class="chart-period-buttons">
-            {% for period in periods %}
-            <button class="chart-period-btn {% if loop.first %}active{% endif %}" 
-                    onclick="changePeriod('{{ period }}')">
-                {{ period }}
-            </button>
-            {% endfor %}
+        <div class="chart-header-left">
+            <h5 class="chart-title">
+                {% if icon %}<i class="fas fa-{{ icon }}"></i>{% endif %}
+                {{ title if title else 'Chart' }}
+            </h5>
+            {% if subtitle %}
+            <p class="chart-subtitle">{{ subtitle }}</p>
+            {% endif %}
         </div>
-        {% endif %}
+        
+        <div class="chart-header-right">
+            {% if show_period_selector %}
+            <div class="chart-period-selector">
+                <button class="chart-period-btn {% if not active_period or active_period == '1mo' %}active{% endif %}" 
+                        onclick="changePeriod{% if container_id %}{{ container_id|title }}{% endif %}('1mo')" 
+                        data-period="1mo">1M</button>
+                <button class="chart-period-btn {% if active_period == '3mo' %}active{% endif %}" 
+                        onclick="changePeriod{% if container_id %}{{ container_id|title }}{% endif %}('3mo')" 
+                        data-period="3mo">3M</button>
+                <button class="chart-period-btn {% if active_period == '6mo' %}active{% endif %}" 
+                        onclick="changePeriod{% if container_id %}{{ container_id|title }}{% endif %}('6mo')" 
+                        data-period="6mo">6M</button>
+                <button class="chart-period-btn {% if active_period == '1y' %}active{% endif %}" 
+                        onclick="changePeriod{% if container_id %}{{ container_id|title }}{% endif %}('1y')" 
+                        data-period="1y">1A</button>
+                <button class="chart-period-btn {% if active_period == '2y' %}active{% endif %}" 
+                        onclick="changePeriod{% if container_id %}{{ container_id|title }}{% endif %}('2y')" 
+                        data-period="2y">2A</button>
+            </div>
+            {% endif %}
+            
+            {% if show_fullscreen %}
+            <button class="chart-action-btn" onclick="toggleFullscreen{% if container_id %}{{ container_id|title }}{% endif %}()" title="Plein écran">
+                <i class="fas fa-expand"></i>
+            </button>
+            {% endif %}
+            
+            {% if show_download %}
+            <button class="chart-action-btn" onclick="downloadChart{% if container_id %}{{ container_id|title }}{% endif %}()" title="Télécharger">
+                <i class="fas fa-download"></i>
+            </button>
+            {% endif %}
+        </div>
     </div>
-    {% endif %}
     
-    <div class="chart-container-content" {% if chart_id %}id="{{ chart_id }}"{% else %}id="chart-content"{% endif %}>
-        <!-- Chart will be rendered here by Plotly/Chart.js -->
+    <div class="chart-container-body" id="{% if chart_id %}{{ chart_id }}{% else %}chart-body{% endif %}">
+        <!-- Chart will be rendered here -->
+        <div class="chart-loading" id="chart-loading{% if container_id %}{{ container_id|title }}{% endif %}">
+            <div class="loading-spinner"></div>
+            <p>Chargement du graphique...</p>
+        </div>
     </div>
     
-    {% if footer %}
+    {% if show_legend %}
     <div class="chart-container-footer">
-        {{ footer }}
+        <div class="chart-legend" id="chart-legend{% if container_id %}{{ container_id|title }}{% endif %}">
+            <!-- Legend will be populated by JavaScript -->
+        </div>
     </div>
     {% endif %}
 </div>
 
 <script>
-    function changePeriod(period) {
+(function() {
+    'use strict';
+    
+    const containerId = '{% if container_id %}{{ container_id }}{% endif %}';
+    const chartId = '{% if chart_id %}{{ chart_id }}{% else %}chart-body{% endif %}';
+    
+    // Period change function
+    window.changePeriod{% if container_id %}{{ container_id|title }}{% endif %} = function(period) {
         // Update active button
-        const buttons = document.querySelectorAll('.chart-period-btn');
-        buttons.forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.textContent.trim() === period) {
-                btn.classList.add('active');
-            }
-        });
+        const container = document.getElementById(containerId) || document.querySelector('.chart-container-wrapper');
+        if (container) {
+            const buttons = container.querySelectorAll('.chart-period-btn');
+            buttons.forEach(btn => {
+                if (btn.dataset.period === period) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
         
-        // Trigger period change event
-        const event = new CustomEvent('periodChanged', { detail: { period: period }});
+        // Trigger custom event
+        const event = new CustomEvent('chartPeriodChanged', { 
+            detail: { period: period, chartId: chartId }
+        });
         document.dispatchEvent(event);
-    }
+        
+        // If on analyse page, reload with new period
+        const urlParams = new URLSearchParams(window.location.search);
+        const ticker = urlParams.get('ticker');
+        if (ticker) {
+            window.location.href = `/analyse?ticker=${ticker}&period=${period}`;
+        }
+    };
+    
+    // Fullscreen toggle
+    window.toggleFullscreen{% if container_id %}{{ container_id|title }}{% endif %} = function() {
+        const container = document.getElementById(containerId) || document.querySelector('.chart-container-wrapper');
+        if (!container) return;
+        
+        if (!document.fullscreenElement) {
+            container.requestFullscreen().catch(err => {
+                console.error('Error entering fullscreen:', err);
+            });
+            container.classList.add('fullscreen');
+        } else {
+            document.exitFullscreen();
+            container.classList.remove('fullscreen');
+        }
+    };
+    
+    // Download chart
+    window.downloadChart{% if container_id %}{{ container_id|title }}{% endif %} = function() {
+        const chartElement = document.getElementById(chartId);
+        if (!chartElement) return;
+        
+        // If using Plotly
+        if (typeof Plotly !== 'undefined' && Plotly.downloadImage) {
+            Plotly.downloadImage(chartId, {
+                format: 'png',
+                filename: 'chart_' + new Date().toISOString().split('T')[0],
+                height: 800,
+                width: 1200,
+                scale: 2
+            });
+        } else {
+            // Fallback: try html2canvas if available
+            if (typeof html2canvas !== 'undefined') {
+                html2canvas(chartElement).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'chart_' + new Date().toISOString().split('T')[0] + '.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+                });
+            } else {
+                alert('Download feature not available. Please install html2canvas library.');
+            }
+        }
+    };
+    
+    // Hide loading when chart is ready
+    document.addEventListener('chartReady', function(e) {
+        if (e.detail && e.detail.chartId === chartId) {
+            const loading = document.getElementById('chart-loading{% if container_id %}{{ container_id|title }}{% endif %}');
+            if (loading) {
+                loading.style.display = 'none';
+            }
+        }
+    });
+    
+    // Handle fullscreen change
+    document.addEventListener('fullscreenchange', function() {
+        const container = document.getElementById(containerId) || document.querySelector('.chart-container-wrapper');
+        if (container && !document.fullscreenElement) {
+            container.classList.remove('fullscreen');
+        }
+    });
+})();
 </script>

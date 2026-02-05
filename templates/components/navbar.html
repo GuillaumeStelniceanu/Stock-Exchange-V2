@@ -1,181 +1,135 @@
 <!-- templates/components/navbar.html -->
-<!-- Enhanced Navigation Component -->
-<nav class="navbar-glass">
-    <div class="container-fluid">
-        <div class="d-flex justify-content-between align-items-center w-100">
-            <!-- Logo / Brand -->
-            <a class="navbar-brand" href="/">
-                <div class="brand-icon">
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect width="32" height="32" rx="8" fill="url(#brandGradient)"/>
-                        <path d="M8 24L16 8L24 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M12 18H20" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-                        <defs>
-                            <linearGradient id="brandGradient" x1="0" y1="0" x2="32" y2="32">
-                                <stop offset="0%" stop-color="#0066FF"/>
-                                <stop offset="100%" stop-color="#00D9FF"/>
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                </div>
-                <div class="brand-text">
-                    <span class="brand-name">TECHNICAL</span>
-                    <span class="brand-name-accent">ANALYST</span>
-                </div>
+<nav class="main-navbar">
+    <div class="navbar-container">
+        <!-- Logo/Brand -->
+        <a href="/" class="navbar-brand">
+            <div class="brand-icon">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <rect width="32" height="32" rx="8" fill="url(#brandGradient)"/>
+                    <path d="M8 24L16 8L24 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 18H20" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                    <defs>
+                        <linearGradient id="brandGradient" x1="0" y1="0" x2="32" y2="32">
+                            <stop offset="0%" stop-color="#0066FF"/>
+                            <stop offset="100%" stop-color="#00D9FF"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <div class="brand-text">
+                <span class="brand-name">TECHNICAL</span>
+                <span class="brand-accent">ANALYST</span>
+            </div>
+        </a>
+
+        <!-- Desktop Navigation -->
+        <div class="nav-links desktop-nav">
+            <a href="/" class="nav-link {% if request.endpoint == 'home' %}active{% endif %}">
+                <i class="fas fa-home"></i>
+                <span>Accueil</span>
             </a>
-            
-            <!-- Desktop Navigation -->
-            <div class="nav-menu d-none d-lg-flex">
-                <a class="nav-link {{ 'active' if request.endpoint == 'home' else '' }}" href="/">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                        <path d="M8 1L1 8h2v7h4v-5h2v5h4V8h2L8 1z"/>
-                    </svg>
-                    <span>Accueil</span>
-                </a>
-                <a class="nav-link {{ 'active' if request.endpoint == 'analyse' else '' }}" href="/analyse">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                        <path d="M2 2v12h12V2H2zm11 11H3V3h10v10z"/>
-                        <path d="M5 11h2V7H5v4zm3-6h2v6H8V5zm3 2h2v4h-2V7z"/>
-                    </svg>
-                    <span>Analyse</span>
-                </a>
-                <a class="nav-link {{ 'active' if request.endpoint == 'portefeuille' else '' }}" href="/portefeuille">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                        <path d="M14 3H2c-.55 0-1 .45-1 1v8c0 .55.45 1 1 1h12c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM8 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/>
-                    </svg>
-                    <span>Portefeuille</span>
-                </a>
-                <a class="nav-link {{ 'active' if request.endpoint == 'dashboard' else '' }}" href="/dashboard">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                        <path d="M1 1v6h6V1H1zm8 0v6h6V1H9zM1 9v6h6V9H1zm8 0v6h6V9H9z"/>
-                    </svg>
-                    <span>Dashboard</span>
-                </a>
+            <a href="/analyse" class="nav-link {% if request.endpoint == 'analyse' %}active{% endif %}">
+                <i class="fas fa-search"></i>
+                <span>Analyse</span>
+            </a>
+            <a href="/portefeuille" class="nav-link {% if request.endpoint == 'portefeuille' %}active{% endif %}">
+                <i class="fas fa-folder"></i>
+                <span>Portefeuille</span>
+            </a>
+            <a href="/dashboard" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+        </div>
+
+        <!-- Quick Search -->
+        <div class="navbar-search">
+            <input type="text" 
+                   id="navbar-search-input" 
+                   class="navbar-search-input" 
+                   placeholder="Ticker..."
+                   autocomplete="off">
+            <button class="navbar-search-btn" onclick="navbarSearch()">
+                <i class="fas fa-search"></i>
+            </button>
+            <div id="navbar-search-suggestions" class="navbar-search-suggestions"></div>
+        </div>
+
+        <!-- User Actions -->
+        <div class="navbar-actions">
+            <!-- Theme Toggle -->
+            <button class="navbar-action-btn" id="theme-toggle" title="Toggle dark/light mode">
+                <i class="fas fa-moon" id="theme-icon"></i>
+            </button>
+
+            <!-- Notifications -->
+            <button class="navbar-action-btn" id="notifications-btn" title="Notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">3</span>
+            </button>
+
+            <!-- Mobile Menu Toggle -->
+            <button class="navbar-action-btn mobile-menu-toggle" id="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Market Ticker -->
+    <div class="market-ticker-bar">
+        <div class="ticker-scroll">
+            <div class="ticker-item">
+                <span class="ticker-symbol">NASDAQ</span>
+                <span class="ticker-price">14,532.12</span>
+                <span class="ticker-change positive">+1.2%</span>
             </div>
-            
-            <!-- Quick Search -->
-            <div class="nav-search d-none d-md-block">
-                <input type="text" 
-                       class="search-mini" 
-                       placeholder="Ticker..."
-                       id="nav-search-input">
-                <button class="search-mini-btn" onclick="navSearch()">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                    </svg>
-                </button>
+            <div class="ticker-item">
+                <span class="ticker-symbol">S&P 500</span>
+                <span class="ticker-price">4,567.89</span>
+                <span class="ticker-change positive">+0.8%</span>
             </div>
-            
-            <!-- User Actions -->
-            <div class="nav-actions">
-                <!-- Notifications -->
-                <button class="action-btn" id="notifications-btn">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M10 2C7.79 2 6 3.79 6 6v4l-2 2v1h12v-1l-2-2V6c0-2.21-1.79-4-4-4zm0 16c1.1 0 2-.9 2-2H8c0 1.1.9 2 2 2z"/>
-                    </svg>
-                    <span class="notification-badge">3</span>
-                </button>
-                
-                <!-- Theme Toggle -->
-                <button class="action-btn" id="theme-toggle">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="theme-icon-light">
-                        <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/>
-                    </svg>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="theme-icon-dark" style="display:none;">
-                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
-                    </svg>
-                </button>
-                
-                <!-- User Menu -->
-                <div class="dropdown">
-                    <button class="action-btn user-btn" data-bs-toggle="dropdown">
-                        <div class="user-avatar">
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M10 10a4 4 0 100-8 4 4 0 000 8zm0 2c-4.42 0-8 1.79-8 4v1h16v-1c0-2.21-3.58-4-8-4z"/>
-                            </svg>
-                        </div>
-                        <span class="d-none d-md-inline">Utilisateur</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end user-dropdown">
-                        <li class="dropdown-header">Mon compte</li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-user"></i> Profil</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> Paramètres</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-history"></i> Historique</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>
-                    </ul>
-                </div>
-                
-                <!-- Mobile Menu Toggle -->
-                <button class="action-btn d-lg-none" id="mobile-menu-toggle">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-                    </svg>
-                </button>
+            <div class="ticker-item">
+                <span class="ticker-symbol">CAC 40</span>
+                <span class="ticker-price">7,234.56</span>
+                <span class="ticker-change negative">-0.5%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-symbol">EUR/USD</span>
+                <span class="ticker-price">1.0876</span>
+                <span class="ticker-change positive">+0.3%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-symbol">BTC/USD</span>
+                <span class="ticker-price">43,125.50</span>
+                <span class="ticker-change positive">+2.1%</span>
+            </div>
+            <!-- Duplicate for seamless scroll -->
+            <div class="ticker-item">
+                <span class="ticker-symbol">NASDAQ</span>
+                <span class="ticker-price">14,532.12</span>
+                <span class="ticker-change positive">+1.2%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-symbol">S&P 500</span>
+                <span class="ticker-price">4,567.89</span>
+                <span class="ticker-change positive">+0.8%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-symbol">CAC 40</span>
+                <span class="ticker-price">7,234.56</span>
+                <span class="ticker-change negative">-0.5%</span>
             </div>
         </div>
     </div>
 </nav>
 
-<!-- Market Ticker Bar -->
-<div class="market-ticker">
-    <div class="container-fluid">
-        <div class="ticker-track">
-            <!-- Items will be duplicated for seamless scroll -->
-            <div class="ticker-item">
-                <span class="ticker-symbol">NASDAQ</span>
-                <span class="ticker-price mono">14,532.12</span>
-                <span class="ticker-change positive">+1.2%</span>
-            </div>
-            <div class="ticker-item">
-                <span class="ticker-symbol">S&P 500</span>
-                <span class="ticker-price mono">4,567.89</span>
-                <span class="ticker-change positive">+0.8%</span>
-            </div>
-            <div class="ticker-item">
-                <span class="ticker-symbol">CAC 40</span>
-                <span class="ticker-price mono">7,234.56</span>
-                <span class="ticker-change negative">-0.5%</span>
-            </div>
-            <div class="ticker-item">
-                <span class="ticker-symbol">EUR/USD</span>
-                <span class="ticker-price mono">1.0876</span>
-                <span class="ticker-change positive">+0.3%</span>
-            </div>
-            <div class="ticker-item">
-                <span class="ticker-symbol">BTC/USD</span>
-                <span class="ticker-price mono">43,125.50</span>
-                <span class="ticker-change positive">+2.1%</span>
-            </div>
-            <!-- Duplicate for seamless animation -->
-            <div class="ticker-item">
-                <span class="ticker-symbol">NASDAQ</span>
-                <span class="ticker-price mono">14,532.12</span>
-                <span class="ticker-change positive">+1.2%</span>
-            </div>
-            <div class="ticker-item">
-                <span class="ticker-symbol">S&P 500</span>
-                <span class="ticker-price mono">4,567.89</span>
-                <span class="ticker-change positive">+0.8%</span>
-            </div>
-            <div class="ticker-item">
-                <span class="ticker-symbol">CAC 40</span>
-                <span class="ticker-price mono">7,234.56</span>
-                <span class="ticker-change negative">-0.5%</span>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Mobile Navigation Menu -->
+<!-- Mobile Navigation Overlay -->
 <div class="mobile-nav-overlay" id="mobile-nav-overlay">
     <div class="mobile-nav-content">
         <div class="mobile-nav-header">
             <h3>Menu</h3>
-            <button class="close-mobile-nav">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                </svg>
+            <button class="close-mobile-nav" id="close-mobile-nav">
+                <i class="fas fa-times"></i>
             </button>
         </div>
         <nav class="mobile-nav-links">
@@ -199,70 +153,214 @@
     </div>
 </div>
 
+<!-- Notifications Panel -->
+<div class="notifications-panel" id="notifications-panel">
+    <div class="notifications-header">
+        <h4>Notifications</h4>
+        <button class="close-notifications" id="close-notifications">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="notifications-content">
+        <div class="notification-item unread">
+            <div class="notification-icon success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="notification-text">
+                <p><strong>AAPL</strong> RSI signal detected</p>
+                <span class="notification-time">5 minutes ago</span>
+            </div>
+        </div>
+        <div class="notification-item unread">
+            <div class="notification-icon warning">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="notification-text">
+                <p><strong>TSLA</strong> crossed MA50</p>
+                <span class="notification-time">1 hour ago</span>
+            </div>
+        </div>
+        <div class="notification-item">
+            <div class="notification-icon info">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="notification-text">
+                <p>Market update available</p>
+                <span class="notification-time">3 hours ago</span>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
-// Navigation JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    // Theme Toggle
-    const themeToggle = document.getElementById('theme-toggle');
-    const themeIconLight = document.querySelector('.theme-icon-light');
-    const themeIconDark = document.querySelector('.theme-icon-dark');
+// Navbar functionality
+(function() {
+    'use strict';
     
-    themeToggle?.addEventListener('click', function() {
-        document.body.classList.toggle('light-mode');
-        const isLight = document.body.classList.contains('light-mode');
-        
-        if (isLight) {
-            themeIconLight.style.display = 'none';
-            themeIconDark.style.display = 'block';
-        } else {
-            themeIconLight.style.display = 'block';
-            themeIconDark.style.display = 'none';
-        }
-        
-        localStorage.setItem('theme', isLight ? 'light' : 'dark');
-    });
-    
-    // Load saved theme
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') {
-        document.body.classList.add('light-mode');
-        themeIconLight.style.display = 'none';
-        themeIconDark.style.display = 'block';
-    }
-    
-    // Mobile Menu
-    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-    const mobileOverlay = document.getElementById('mobile-nav-overlay');
-    const closeMobileNav = document.querySelector('.close-mobile-nav');
-    
-    mobileMenuToggle?.addEventListener('click', function() {
-        mobileOverlay.classList.add('active');
-    });
-    
-    closeMobileNav?.addEventListener('click', function() {
-        mobileOverlay.classList.remove('active');
-    });
-    
-    mobileOverlay?.addEventListener('click', function(e) {
-        if (e.target === mobileOverlay) {
-            mobileOverlay.classList.remove('active');
-        }
-    });
-    
-    // Nav Search
-    window.navSearch = function() {
-        const input = document.getElementById('nav-search-input');
+    // Search functionality
+    window.navbarSearch = function() {
+        const input = document.getElementById('navbar-search-input');
         const ticker = input.value.trim().toUpperCase();
         if (ticker) {
             window.location.href = `/analyse?ticker=${ticker}`;
         }
     };
     
-    document.getElementById('nav-search-input')?.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            navSearch();
+    // Enter key in search
+    const searchInput = document.getElementById('navbar-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                navbarSearch();
+            }
+        });
+        
+        // Search suggestions
+        let searchTimeout;
+        searchInput.addEventListener('input', function(e) {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim();
+            
+            if (query.length < 2) {
+                hideNavbarSuggestions();
+                return;
+            }
+            
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                    const data = await response.json();
+                    
+                    if (data.suggestions && data.suggestions.length > 0) {
+                        showNavbarSuggestions(data.suggestions);
+                    } else {
+                        hideNavbarSuggestions();
+                    }
+                } catch (error) {
+                    console.error('Search error:', error);
+                }
+            }, 300);
+        });
+    }
+    
+    function showNavbarSuggestions(suggestions) {
+        const container = document.getElementById('navbar-search-suggestions');
+        if (!container) return;
+        
+        let html = '';
+        suggestions.slice(0, 5).forEach(item => {
+            html += `
+                <div class="suggestion-item" onclick="window.location.href='/analyse?ticker=${item.symbol}'">
+                    <span class="suggestion-ticker">${item.symbol}</span>
+                    <span class="suggestion-name">${item.name}</span>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+        container.classList.add('active');
+    }
+    
+    function hideNavbarSuggestions() {
+        const container = document.getElementById('navbar-search-suggestions');
+        if (container) {
+            container.classList.remove('active');
+        }
+    }
+    
+    // Click outside to close suggestions
+    document.addEventListener('click', function(e) {
+        const search = document.querySelector('.navbar-search');
+        if (search && !search.contains(e.target)) {
+            hideNavbarSuggestions();
         }
     });
-});
+    
+    // Theme toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        themeIcon.className = 'fas fa-sun';
+    }
+    
+    if (themeToggle) {
+        themeToggle.addEventListener('click', function() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            
+            themeIcon.className = isLight ? 'fas fa-sun' : 'fas fa-moon';
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        });
+    }
+    
+    // Mobile menu
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileOverlay = document.getElementById('mobile-nav-overlay');
+    const closeMobileNav = document.getElementById('close-mobile-nav');
+    
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', function() {
+            mobileOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    }
+    
+    if (closeMobileNav) {
+        closeMobileNav.addEventListener('click', function() {
+            mobileOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+    }
+    
+    if (mobileOverlay) {
+        mobileOverlay.addEventListener('click', function(e) {
+            if (e.target === mobileOverlay) {
+                mobileOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+    }
+    
+    // Notifications
+    const notificationsBtn = document.getElementById('notifications-btn');
+    const notificationsPanel = document.getElementById('notifications-panel');
+    const closeNotifications = document.getElementById('close-notifications');
+    
+    if (notificationsBtn) {
+        notificationsBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            notificationsPanel.classList.toggle('active');
+        });
+    }
+    
+    if (closeNotifications) {
+        closeNotifications.addEventListener('click', function() {
+            notificationsPanel.classList.remove('active');
+        });
+    }
+    
+    // Close notifications when clicking outside
+    document.addEventListener('click', function(e) {
+        if (notificationsPanel && !notificationsPanel.contains(e.target) && 
+            !notificationsBtn.contains(e.target)) {
+            notificationsPanel.classList.remove('active');
+        }
+    });
+    
+    // Mark notifications as read when opened
+    if (notificationsBtn) {
+        notificationsBtn.addEventListener('click', function() {
+            setTimeout(() => {
+                const badge = this.querySelector('.notification-badge');
+                if (badge) {
+                    badge.style.display = 'none';
+                }
+            }, 1000);
+        });
+    }
+})();
 </script>

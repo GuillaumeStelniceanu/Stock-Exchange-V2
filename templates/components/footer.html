@@ -1,182 +1,412 @@
 <!-- templates/components/footer.html -->
- <!-- Footer -->
-<footer class="mt-5 py-4 border-top">
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Section à propos -->
-            <div class="col-lg-4 mb-4">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="bg-primary rounded-circle p-2 me-2">
-                        <i class="fas fa-chart-line fa-lg text-white"></i>
-                    </div>
-                    <div>
-                        <h5 class="mb-0">Technical Analyst</h5>
-                        <p class="text-muted small mb-0">Analyse technique avancée</p>
-                    </div>
+<footer class="main-footer">
+    <div class="footer-container">
+        <!-- Footer Top -->
+        <div class="footer-top">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+                        <rect width="32" height="32" rx="8" fill="url(#footerGradient)"/>
+                        <path d="M8 24L16 8L24 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 18H20" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <defs>
+                            <linearGradient id="footerGradient" x1="0" y1="0" x2="32" y2="32">
+                                <stop offset="0%" stop-color="#0066FF"/>
+                                <stop offset="100%" stop-color="#00D9FF"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
                 </div>
-                <p class="text-muted">
-                    Plateforme d'analyse technique offrant des indicateurs avancés, 
-                    des graphiques interactifs et des signaux de trading pour 
-                    les marchés financiers.
-                </p>
-                <div class="d-flex gap-2">
-                    <a href="#" class="text-decoration-none">
-                        <i class="fab fa-twitter fa-lg text-primary"></i>
-                    </a>
-                    <a href="#" class="text-decoration-none">
-                        <i class="fab fa-github fa-lg text-dark"></i>
-                    </a>
-                    <a href="#" class="text-decoration-none">
-                        <i class="fab fa-linkedin fa-lg text-primary"></i>
-                    </a>
-                    <a href="#" class="text-decoration-none">
-                        <i class="fab fa-youtube fa-lg text-danger"></i>
-                    </a>
+                <div>
+                    <h4 class="footer-brand-name">TECHNICAL ANALYST</h4>
+                    <p class="footer-brand-tagline">Analyse technique avancée pour traders intelligents</p>
                 </div>
             </div>
             
-            <!-- Liens rapides -->
-            <div class="col-lg-2 col-md-4 mb-4">
-                <h6 class="mb-3">Navigation</h6>
-                <ul class="list-unstyled">
-                    <li class="mb-2">
-                        <a href="/" class="text-decoration-none text-muted">
-                            <i class="fas fa-home me-1"></i>Accueil
+            <div class="footer-sections">
+                <!-- Navigation -->
+                <div class="footer-section">
+                    <h5 class="footer-section-title">Navigation</h5>
+                    <ul class="footer-links">
+                        <li><a href="/"><i class="fas fa-home"></i> Accueil</a></li>
+                        <li><a href="/analyse"><i class="fas fa-search"></i> Analyse</a></li>
+                        <li><a href="/portefeuille"><i class="fas fa-folder"></i> Portefeuille</a></li>
+                        <li><a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Resources -->
+                <div class="footer-section">
+                    <h5 class="footer-section-title">Ressources</h5>
+                    <ul class="footer-links">
+                        <li><a href="#" onclick="showDocumentation(); return false;"><i class="fas fa-book"></i> Documentation</a></li>
+                        <li><a href="#" onclick="showTutorial(); return false;"><i class="fas fa-graduation-cap"></i> Tutoriels</a></li>
+                        <li><a href="#" onclick="showAPI(); return false;"><i class="fas fa-code"></i> API</a></li>
+                        <li><a href="#" onclick="showFAQ(); return false;"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Support -->
+                <div class="footer-section">
+                    <h5 class="footer-section-title">Support</h5>
+                    <ul class="footer-links">
+                        <li><a href="#" onclick="contactSupport(); return false;"><i class="fas fa-envelope"></i> Contact</a></li>
+                        <li><a href="#" onclick="reportBug(); return false;"><i class="fas fa-bug"></i> Signaler un bug</a></li>
+                        <li><a href="#" onclick="showStatus(); return false;"><i class="fas fa-heartbeat"></i> Statut système</a></li>
+                        <li><a href="#" onclick="showChangelog(); return false;"><i class="fas fa-history"></i> Changelog</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Connect -->
+                <div class="footer-section">
+                    <h5 class="footer-section-title">Suivez-nous</h5>
+                    <div class="footer-social">
+                        <a href="#" class="social-btn" onclick="openSocial('twitter'); return false;" title="Twitter">
+                            <i class="fab fa-twitter"></i>
                         </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="/analyse" class="text-decoration-none text-muted">
-                            <i class="fas fa-search me-1"></i>Analyse
+                        <a href="#" class="social-btn" onclick="openSocial('github'); return false;" title="GitHub">
+                            <i class="fab fa-github"></i>
                         </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="/portefeuille" class="text-decoration-none text-muted">
-                            <i class="fas fa-folder me-1"></i>Portefeuille
+                        <a href="#" class="social-btn" onclick="openSocial('linkedin'); return false;" title="LinkedIn">
+                            <i class="fab fa-linkedin"></i>
                         </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="/dashboard" class="text-decoration-none text-muted">
-                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        <a href="#" class="social-btn" onclick="openSocial('discord'); return false;" title="Discord">
+                            <i class="fab fa-discord"></i>
                         </a>
-                    </li>
-                </ul>
-            </div>
-            
-            <!-- Indicateurs -->
-            <div class="col-lg-3 col-md-4 mb-4">
-                <h6 class="mb-3">Indicateurs</h6>
-                <ul class="list-unstyled">
-                    <li class="mb-2">
-                        <a href="#" class="text-decoration-none text-muted">
-                            <i class="fas fa-wave-square me-1"></i>RSI
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="#" class="text-decoration-none text-muted">
-                            <i class="fas fa-exchange-alt me-1"></i>MACD
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="#" class="text-decoration-none text-muted">
-                            <i class="fas fa-arrows-alt-h me-1"></i>Bollinger Bands
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="#" class="text-decoration-none text-muted">
-                            <i class="fas fa-chart-area me-1"></i>Fibonacci
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="#" class="text-decoration-none text-muted">
-                            <i class="fas fa-tachometer-alt me-1"></i>Tous les indicateurs
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            
-            <!-- Informations -->
-            <div class="col-lg-3 col-md-4 mb-4">
-                <h6 class="mb-3">Informations</h6>
-                <ul class="list-unstyled">
-                    <li class="mb-2">
-                        <a href="#" class="text-decoration-none text-muted">
-                            <i class="fas fa-file-alt me-1"></i>Documentation
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="#" class="text-decoration-none text-muted">
-                            <i class="fas fa-question-circle me-1"></i>FAQ
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="#" class="text-decoration-none text-muted">
-                            <i class="fas fa-envelope me-1"></i>Contact
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="#" class="text-decoration-none text-muted">
-                            <i class="fas fa-shield-alt me-1"></i>Confidentialité
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="#" class="text-decoration-none text-muted">
-                            <i class="fas fa-file-contract me-1"></i>Conditions
-                        </a>
-                    </li>
-                </ul>
+                    </div>
+                    
+                    <!-- Newsletter -->
+                    <div class="footer-newsletter">
+                        <p class="newsletter-label">Restez informé</p>
+                        <form onsubmit="subscribeNewsletter(event)" class="newsletter-form">
+                            <input type="email" 
+                                   class="newsletter-input" 
+                                   placeholder="Votre email..."
+                                   id="newsletter-email"
+                                   required>
+                            <button type="submit" class="newsletter-btn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <hr class="my-4">
-        
-        <!-- Bas de page -->
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <p class="mb-0 text-muted small">
-                    &copy; 2024 Technical Analyst. Tous droits réservés.
+        <!-- Footer Bottom -->
+        <div class="footer-bottom">
+            <div class="footer-bottom-left">
+                <p class="footer-copyright">
+                    © {{ current_year if current_year else '2026' }} Technical Analyst. 
+                    <span class="separator">•</span>
+                    Tous droits réservés.
                 </p>
             </div>
-            <div class="col-md-6 text-md-end">
-                <p class="mb-0 text-muted small">
-                    Données fournies par 
-                    <a href="https://finance.yahoo.com/" class="text-decoration-none" target="_blank">
-                        Yahoo Finance
-                    </a>
-                    • 
-                    <a href="#" class="text-decoration-none">Avertissement</a> : 
-                    Pour usage éducatif uniquement. 
-                    Investir comporte des risques de perte.
-                </p>
+            
+            <div class="footer-bottom-center">
+                <a href="#" onclick="showPrivacy(); return false;">Confidentialité</a>
+                <span class="separator">•</span>
+                <a href="#" onclick="showTerms(); return false;">Conditions</a>
+                <span class="separator">•</span>
+                <a href="#" onclick="showCookies(); return false;">Cookies</a>
+            </div>
+            
+            <div class="footer-bottom-right">
+                <button class="back-to-top" onclick="scrollToTop()" title="Retour en haut">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
             </div>
         </div>
     </div>
 </footer>
 
-<!-- Bouton retour en haut -->
-<button class="btn btn-primary btn-lg rounded-circle position-fixed bottom-0 end-0 m-4"
-        id="back-to-top"
-        style="display: none; z-index: 1000;">
-    <i class="fas fa-arrow-up"></i>
-</button>
+<!-- Modal for various footer actions -->
+<div class="footer-modal" id="footer-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h4 id="modal-title">Information</h4>
+            <button class="modal-close" onclick="closeFooterModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="modal-body">
+            <!-- Content will be injected here -->
+        </div>
+    </div>
+</div>
 
 <script>
-    // Bouton retour en haut
-    document.addEventListener('DOMContentLoaded', function() {
-        const backToTopButton = document.getElementById('back-to-top');
-        
+(function() {
+    'use strict';
+    
+    // Scroll to top
+    window.scrollToTop = function() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    };
+    
+    // Show/hide back to top button based on scroll
+    let backToTopBtn = document.querySelector('.back-to-top');
+    if (backToTopBtn) {
         window.addEventListener('scroll', function() {
             if (window.pageYOffset > 300) {
-                backToTopButton.style.display = 'block';
+                backToTopBtn.style.opacity = '1';
+                backToTopBtn.style.pointerEvents = 'all';
             } else {
-                backToTopButton.style.display = 'none';
+                backToTopBtn.style.opacity = '0';
+                backToTopBtn.style.pointerEvents = 'none';
             }
         });
-        
-        backToTopButton.addEventListener('click', function() {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+    }
+    
+    // Modal functions
+    const modal = document.getElementById('footer-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    
+    function openModal(title, content) {
+        modalTitle.textContent = title;
+        modalBody.innerHTML = content;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    window.closeFooterModal = function() {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    };
+    
+    // Close modal on overlay click
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeFooterModal();
+            }
         });
+    }
+    
+    // ESC key to close modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeFooterModal();
+        }
     });
+    
+    // Footer action functions
+    window.showDocumentation = function() {
+        openModal('Documentation', `
+            <div class="modal-info-content">
+                <p>Bienvenue dans la documentation de Technical Analyst !</p>
+                <h5>Guides disponibles :</h5>
+                <ul>
+                    <li>Guide de démarrage rapide</li>
+                    <li>Analyse technique avancée</li>
+                    <li>Gestion de portefeuille</li>
+                    <li>Interprétation des indicateurs</li>
+                </ul>
+                <button class="btn-primary" onclick="closeFooterModal()">Fermer</button>
+            </div>
+        `);
+    };
+    
+    window.showTutorial = function() {
+        openModal('Tutoriels', `
+            <div class="modal-info-content">
+                <p>Apprenez à utiliser Technical Analyst efficacement.</p>
+                <div class="tutorial-list">
+                    <div class="tutorial-item">
+                        <i class="fas fa-video"></i>
+                        <span>Introduction à l'analyse technique</span>
+                    </div>
+                    <div class="tutorial-item">
+                        <i class="fas fa-video"></i>
+                        <span>Utiliser les indicateurs RSI et MACD</span>
+                    </div>
+                    <div class="tutorial-item">
+                        <i class="fas fa-video"></i>
+                        <span>Créer et gérer votre portefeuille</span>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="closeFooterModal()">Fermer</button>
+            </div>
+        `);
+    };
+    
+    window.showAPI = function() {
+        openModal('API Documentation', `
+            <div class="modal-info-content">
+                <p>Accédez aux données en temps réel via notre API REST.</p>
+                <div class="code-block">
+                    <code>GET /api/search?q=AAPL</code>
+                    <code>GET /api/quote?ticker=MSFT</code>
+                    <code>GET /api/history?ticker=GOOGL&period=1y</code>
+                </div>
+                <button class="btn-primary" onclick="closeFooterModal()">Fermer</button>
+            </div>
+        `);
+    };
+    
+    window.showFAQ = function() {
+        openModal('FAQ', `
+            <div class="modal-info-content">
+                <h5>Questions fréquentes</h5>
+                <div class="faq-item">
+                    <strong>Q: D'où proviennent les données ?</strong>
+                    <p>A: Nous utilisons plusieurs sources de données financières fiables incluant Alpha Vantage, Yahoo Finance, et d'autres.</p>
+                </div>
+                <div class="faq-item">
+                    <strong>Q: Les données sont-elles en temps réel ?</strong>
+                    <p>A: Les données ont un délai de 15-20 minutes pour la version gratuite.</p>
+                </div>
+                <button class="btn-primary" onclick="closeFooterModal()">Fermer</button>
+            </div>
+        `);
+    };
+    
+    window.contactSupport = function() {
+        openModal('Contactez-nous', `
+            <div class="modal-info-content">
+                <p>Notre équipe est là pour vous aider !</p>
+                <form onsubmit="sendSupportMessage(event)">
+                    <input type="text" placeholder="Votre nom" required>
+                    <input type="email" placeholder="Votre email" required>
+                    <textarea placeholder="Votre message..." rows="4" required></textarea>
+                    <button type="submit" class="btn-primary">Envoyer</button>
+                </form>
+            </div>
+        `);
+    };
+    
+    window.reportBug = function() {
+        openModal('Signaler un bug', `
+            <div class="modal-info-content">
+                <p>Merci de nous aider à améliorer l'application !</p>
+                <form onsubmit="submitBugReport(event)">
+                    <input type="text" placeholder="Titre du bug" required>
+                    <textarea placeholder="Description détaillée..." rows="5" required></textarea>
+                    <button type="submit" class="btn-primary">Envoyer</button>
+                </form>
+            </div>
+        `);
+    };
+    
+    window.showStatus = function() {
+        openModal('Statut du système', `
+            <div class="modal-info-content">
+                <div class="status-item">
+                    <i class="fas fa-check-circle" style="color: var(--green)"></i>
+                    <span>API: Opérationnel</span>
+                </div>
+                <div class="status-item">
+                    <i class="fas fa-check-circle" style="color: var(--green)"></i>
+                    <span>Base de données: Opérationnel</span>
+                </div>
+                <div class="status-item">
+                    <i class="fas fa-check-circle" style="color: var(--green)"></i>
+                    <span>Services de données: Opérationnel</span>
+                </div>
+                <button class="btn-primary" onclick="closeFooterModal()">Fermer</button>
+            </div>
+        `);
+    };
+    
+    window.showChangelog = function() {
+        openModal('Historique des versions', `
+            <div class="modal-info-content">
+                <h5>v2.1.0 - 30 Jan 2026</h5>
+                <ul>
+                    <li>Nouvelle interface utilisateur</li>
+                    <li>Support multi-sources de données</li>
+                    <li>Performance améliorée</li>
+                </ul>
+                <button class="btn-primary" onclick="closeFooterModal()">Fermer</button>
+            </div>
+        `);
+    };
+    
+    window.showPrivacy = function() {
+        openModal('Politique de confidentialité', `
+            <div class="modal-info-content">
+                <p>Nous respectons votre vie privée et protégeons vos données.</p>
+                <p>Cette application ne collecte pas de données personnelles sans votre consentement.</p>
+                <button class="btn-primary" onclick="closeFooterModal()">Fermer</button>
+            </div>
+        `);
+    };
+    
+    window.showTerms = function() {
+        openModal('Conditions d\'utilisation', `
+            <div class="modal-info-content">
+                <p>En utilisant Technical Analyst, vous acceptez nos conditions d'utilisation.</p>
+                <p>Ce service est fourni "tel quel" sans garantie.</p>
+                <button class="btn-primary" onclick="closeFooterModal()">Fermer</button>
+            </div>
+        `);
+    };
+    
+    window.showCookies = function() {
+        openModal('Politique des cookies', `
+            <div class="modal-info-content">
+                <p>Nous utilisons des cookies pour améliorer votre expérience.</p>
+                <p>Les cookies sont utilisés uniquement pour les préférences utilisateur (thème, etc.).</p>
+                <button class="btn-primary" onclick="closeFooterModal()">Fermer</button>
+            </div>
+        `);
+    };
+    
+    window.openSocial = function(platform) {
+        const urls = {
+            twitter: 'https://twitter.com',
+            github: 'https://github.com',
+            linkedin: 'https://linkedin.com',
+            discord: 'https://discord.com'
+        };
+        if (urls[platform]) {
+            window.open(urls[platform], '_blank');
+        }
+    };
+    
+    window.subscribeNewsletter = function(e) {
+        e.preventDefault();
+        const email = document.getElementById('newsletter-email').value;
+        
+        // Simulate subscription
+        openModal('Newsletter', `
+            <div class="modal-info-content success">
+                <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--green);"></i>
+                <h5>Inscription réussie !</h5>
+                <p>Merci de vous être inscrit à notre newsletter avec : <strong>${email}</strong></p>
+                <button class="btn-primary" onclick="closeFooterModal()">Fermer</button>
+            </div>
+        `);
+        
+        document.getElementById('newsletter-email').value = '';
+    };
+    
+    window.sendSupportMessage = function(e) {
+        e.preventDefault();
+        openModal('Succès', `
+            <div class="modal-info-content success">
+                <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--green);"></i>
+                <h5>Message envoyé !</h5>
+                <p>Notre équipe vous répondra dans les plus brefs délais.</p>
+                <button class="btn-primary" onclick="closeFooterModal()">Fermer</button>
+            </div>
+        `);
+    };
+    
+    window.submitBugReport = function(e) {
+        e.preventDefault();
+        openModal('Succès', `
+            <div class="modal-info-content success">
+                <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--green);"></i>
+                <h5>Rapport envoyé !</h5>
+                <p>Merci pour votre contribution à l'amélioration de l'application.</p>
+                <button class="btn-primary" onclick="closeFooterModal()">Fermer</button>
+            </div>
+        `);
+    };
+})();
 </script>
