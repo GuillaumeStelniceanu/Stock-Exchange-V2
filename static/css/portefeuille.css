@@ -1,0 +1,339 @@
+/* static/css/portefeuille.css */
+
+.portfolio-container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    min-height: calc(100vh - 200px);
+}
+
+.portfolio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.portfolio-title {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+.portfolio-subtitle {
+    color: var(--text-secondary);
+    margin: 0.5rem 0 0 0;
+}
+
+.portfolio-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.market-select {
+    padding: 0.75rem 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.market-select:focus {
+    border-color: var(--primary);
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background: rgba(0, 102, 255, 0.1);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.action-btn.primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.action-btn.primary:hover {
+    background: var(--primary-light);
+}
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+}
+
+.summary-icon {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    font-size: 1.5rem;
+}
+
+.summary-icon.success {
+    background: var(--green-glow);
+    color: var(--green);
+}
+
+.summary-icon.primary {
+    background: rgba(0, 102, 255, 0.1);
+    color: var(--primary);
+}
+
+.summary-icon.danger {
+    background: var(--red-glow);
+    color: var(--red);
+}
+
+.summary-info {
+    flex: 1;
+}
+
+.summary-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.summary-value {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.portfolio-table-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.portfolio-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.portfolio-table thead {
+    background: var(--bg-secondary);
+}
+
+.portfolio-table th {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+}
+
+.portfolio-table tbody tr {
+    transition: background 0.2s;
+}
+
+.portfolio-table tbody tr:hover {
+    background: rgba(0, 102, 255, 0.03);
+}
+
+.portfolio-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.stock-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.table-ticker {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.table-name {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.price-cell,
+.change-cell,
+.percent-cell,
+.volume-cell {
+    font-family: var(--font-mono);
+}
+
+.change-cell,
+.percent-cell {
+    font-weight: 700;
+}
+
+.change-cell.positive,
+.percent-cell.positive {
+    color: var(--green);
+}
+
+.change-cell.negative,
+.percent-cell.negative {
+    color: var(--red);
+}
+
+.volume-cell {
+    color: var(--text-tertiary);
+}
+
+.actions-cell {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.table-action-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.table-action-btn:hover {
+    background: rgba(0, 102, 255, 0.1);
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.table-action-btn.danger:hover {
+    background: var(--red-glow);
+    border-color: var(--red);
+    color: var(--red);
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 50vh;
+    padding: 2rem;
+}
+
+.empty-icon {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    border-radius: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    color: white;
+    margin-bottom: 2rem;
+}
+
+.empty-title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0 0 1rem 0;
+}
+
+.empty-description {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    margin: 0 0 2rem 0;
+}
+
+.empty-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 1rem 2rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.empty-button:hover {
+    background: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 102, 255, 0.4);
+}
+
+@media (max-width: 768px) {
+    .portfolio-container {
+        padding: 1rem;
+    }
+    
+    .portfolio-title {
+        font-size: 2rem;
+    }
+    
+    .summary-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .portfolio-table {
+        font-size: 0.875rem;
+    }
+    
+    .portfolio-table th,
+    .portfolio-table td {
+        padding: 0.75rem 1rem;
+    }
+}
