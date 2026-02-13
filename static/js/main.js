@@ -12,7 +12,7 @@ class AppState {
         this.currentTicker = null;
         this.currentPeriod = '6mo';
         this.isLoading = false;
-    }
+    }a
     
     setLoading(state) {
         this.isLoading = state;

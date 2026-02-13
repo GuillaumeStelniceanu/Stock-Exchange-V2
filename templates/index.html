@@ -5,18 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Technical Analyst - Accueil</title>
     
-    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- CSS Files -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/search_bar.css') }}">
@@ -24,7 +16,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 <body>
-    <!-- Navbar -->
     {% include 'components/navbar.html' %}
     
     <!-- Hero Section -->
@@ -56,22 +47,22 @@
             
             <div class="hero-stats">
                 <div class="hero-stat">
-                    <div class="stat-value">{{ stats.total_stocks if stats else '100+' }}</div>
+                    <div class="stat-value">100+</div>
                     <div class="stat-label">Actions suivies</div>
                 </div>
                 <div class="hero-stat">
-                    <div class="stat-value">{{ stats.total_analyses if stats else '1000+' }}</div>
+                    <div class="stat-value">1000+</div>
                     <div class="stat-label">Analyses effectuées</div>
                 </div>
                 <div class="hero-stat">
-                    <div class="stat-value">{{ stats.data_sources if stats else '5' }}</div>
+                    <div class="stat-value">5</div>
                     <div class="stat-label">Sources de données</div>
                 </div>
             </div>
         </div>
     </section>
     
-    <!-- Features Section -->
+    <!-- Features Section - ONLY 4 -->
     <section class="features-section">
         <div class="container">
             <div class="section-header">
@@ -80,7 +71,7 @@
             </div>
             
             <div class="features-grid">
-                <!-- Feature 1 -->
+                <!-- Feature 1: Analyse -->
                 <div class="feature-card" onclick="window.location.href='/analyse'">
                     <div class="feature-icon">
                         <i class="fas fa-chart-line"></i>
@@ -97,7 +88,7 @@
                     </div>
                 </div>
                 
-                <!-- Feature 2 -->
+                <!-- Feature 2: Portefeuille -->
                 <div class="feature-card" onclick="window.location.href='/portefeuille'">
                     <div class="feature-icon">
                         <i class="fas fa-folder"></i>
@@ -114,7 +105,7 @@
                     </div>
                 </div>
                 
-                <!-- Feature 3 -->
+                <!-- Feature 3: Dashboard -->
                 <div class="feature-card" onclick="window.location.href='/dashboard'">
                     <div class="feature-icon">
                         <i class="fas fa-tachometer-alt"></i>
@@ -131,7 +122,7 @@
                     </div>
                 </div>
                 
-                <!-- Feature 4 -->
+                <!-- Feature 4: Multi-sources -->
                 <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-database"></i>
@@ -147,49 +138,15 @@
                         </span>
                     </div>
                 </div>
-                
-                <!-- Feature 5 -->
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-bolt"></i>
-                    </div>
-                    <h3 class="feature-title">Temps réel</h3>
-                    <p class="feature-description">
-                        Données actualisées régulièrement avec cache intelligent pour des performances optimales.
-                    </p>
-                    <div class="feature-footer">
-                        <span class="feature-link">
-                            Découvrir
-                            <i class="fas fa-arrow-right"></i>
-                        </span>
-                    </div>
-                </div>
-                
-                <!-- Feature 6 -->
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-mobile-alt"></i>
-                    </div>
-                    <h3 class="feature-title">Responsive</h3>
-                    <p class="feature-description">
-                        Interface adaptée à tous les appareils : desktop, tablette et mobile.
-                    </p>
-                    <div class="feature-footer">
-                        <span class="feature-link">
-                            Tester
-                            <i class="fas fa-arrow-right"></i>
-                        </span>
-                    </div>
-                </div>
             </div>
         </div>
     </section>
     
-    <!-- Popular Stocks Section -->
+    <!-- Popular Stocks Section - TOP 10 ONLY -->
     <section class="popular-stocks-section">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Actions populaires</h2>
+                <h2 class="section-title">Actions populaires - Top 10</h2>
                 <p class="section-subtitle">Les plus suivies par notre communauté</p>
             </div>
             
@@ -202,6 +159,8 @@
                     {'ticker': 'TSLA', 'name': 'Tesla Inc.', 'price': 245.60, 'change': -8.40, 'change_percent': -3.31},
                     {'ticker': 'META', 'name': 'Meta Platforms', 'price': 475.20, 'change': 12.50, 'change_percent': 2.70},
                     {'ticker': 'NVDA', 'name': 'NVIDIA Corp.', 'price': 720.80, 'change': 15.30, 'change_percent': 2.17},
+                    {'ticker': 'JPM', 'name': 'JPMorgan Chase', 'price': 185.40, 'change': 2.80, 'change_percent': 1.54},
+                    {'ticker': 'V', 'name': 'Visa Inc.', 'price': 265.90, 'change': 1.20, 'change_percent': 0.45},
                     {'ticker': 'TTE.PA', 'name': 'TotalEnergies', 'price': 65.40, 'change': 0.80, 'change_percent': 1.24}
                 ] %}
                 
@@ -229,30 +188,8 @@
         </div>
     </section>
     
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="cta-content">
-            <h2 class="cta-title">Prêt à commencer ?</h2>
-            <p class="cta-description">
-                Commencez à analyser les marchés financiers dès maintenant avec nos outils professionnels.
-            </p>
-            <div class="cta-buttons">
-                <button class="cta-button primary" onclick="window.location.href='/analyse'">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Analyser une action</span>
-                </button>
-                <button class="cta-button secondary" onclick="window.location.href='/dashboard'">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Voir le dashboard</span>
-                </button>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Footer -->
     {% include 'components/footer.html' %}
     
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>

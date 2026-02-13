@@ -5,21 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% if ticker %}{{ ticker }} - {% endif %}Analyse Technique</title>
     
-    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Plotly.js -->
+    <!-- Plotly MUST load FIRST -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     
-    <!-- CSS Files -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/search_bar.css') }}">
@@ -28,80 +20,50 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/analyse.css') }}">
 </head>
 <body>
-    <!-- Navbar -->
     {% include 'components/navbar.html' %}
     
     <div class="analyse-container">
         {% if error %}
-        <!-- Error State -->
         <div class="error-state">
-            <div class="error-icon">
-                <i class="fas fa-exclamation-circle"></i>
-            </div>
+            <div class="error-icon"><i class="fas fa-exclamation-circle"></i></div>
             <h2 class="error-title">Une erreur est survenue</h2>
             <p class="error-message">{{ error }}</p>
             <button class="error-button" onclick="window.location.href='/analyse'">
-                <i class="fas fa-redo"></i>
-                <span>Réessayer</span>
+                <i class="fas fa-redo"></i><span>Réessayer</span>
             </button>
         </div>
         {% elif not ticker %}
-        <!-- Welcome State -->
         <div class="welcome-state">
-            <div class="welcome-icon">
-                <i class="fas fa-chart-line"></i>
-            </div>
+            <div class="welcome-icon"><i class="fas fa-chart-line"></i></div>
             <h1 class="welcome-title">Analyse Technique</h1>
-            <p class="welcome-description">
-                Recherchez une action pour commencer l'analyse technique avec tous nos indicateurs.
-            </p>
-            <div class="welcome-search">
-                {% include 'components/search_bar.html' %}
-            </div>
+            <p class="welcome-description">Recherchez une action pour commencer l'analyse.</p>
+            <div class="welcome-search">{% include 'components/search_bar.html' %}</div>
         </div>
         {% else %}
-        <!-- Analysis Content -->
         <div class="analysis-content">
-            <!-- Breadcrumb -->
             <nav class="breadcrumb-nav">
-                <a href="/" class="breadcrumb-item">
-                    <i class="fas fa-home"></i>
-                    <span>Accueil</span>
-                </a>
+                <a href="/" class="breadcrumb-item"><i class="fas fa-home"></i><span>Accueil</span></a>
                 <span class="breadcrumb-separator">›</span>
-                <a href="/analyse" class="breadcrumb-item">
-                    <span>Analyse</span>
-                </a>
+                <a href="/analyse" class="breadcrumb-item"><span>Analyse</span></a>
                 <span class="breadcrumb-separator">›</span>
                 <span class="breadcrumb-current">{{ ticker }}</span>
             </nav>
             
-            <!-- Search Bar -->
-            <div class="page-search">
-                {% include 'components/search_bar.html' %}
-            </div>
+            <div class="page-search">{% include 'components/search_bar.html' %}</div>
             
-            <!-- Stock Header -->
             <div class="stock-header-card">
                 <div class="stock-header-left">
                     <div class="stock-company-info">
-                        <h1 class="stock-company-name">
-                            {{ stock_info.name if stock_info else ticker }}
-                        </h1>
+                        <h1 class="stock-company-name">{{ stock_info.name if stock_info else ticker }}</h1>
                         <div class="stock-meta-info">
                             <span class="stock-ticker-badge">{{ ticker }}</span>
-                            {% if stock_info and stock_info.sector %}
-                            <span class="stock-sector">{{ stock_info.sector }}</span>
-                            {% endif %}
+                            {% if stock_info and stock_info.sector %}<span class="stock-sector">{{ stock_info.sector }}</span>{% endif %}
                         </div>
                     </div>
                 </div>
-                
                 <div class="stock-header-right">
                     <div class="stock-price-display">
-                        <div class="stock-price-value">
-                            ${{ "%.2f"|format(current_price) if current_price else '--' }}
-                        </div>
+                        <div class="stock-price-value">${{ "%.2f"|format(current_price) if current_price else '--' }}</div>
                         {% if price_change is defined %}
                         <div class="stock-price-change {% if price_change >= 0 %}positive{% else %}negative{% endif %}">
                             <i class="fas fa-{% if price_change >= 0 %}arrow-up{% else %}arrow-down{% endif %}"></i>
@@ -112,13 +74,9 @@
                 </div>
             </div>
             
-            <!-- Indicators Grid -->
             <div class="indicators-grid">
                 <div class="indicator-card {% if analysis.rsi_signal %}{{ analysis.rsi_signal }}{% endif %}">
-                    <div class="indicator-header">
-                        <span class="indicator-label">RSI (14)</span>
-                        <i class="fas fa-chart-area"></i>
-                    </div>
+                    <div class="indicator-header"><span class="indicator-label">RSI (14)</span><i class="fas fa-chart-area"></i></div>
                     <div class="indicator-value">{{ "%.2f"|format(analysis.rsi) if analysis and analysis.rsi else '--' }}</div>
                     {% if analysis and analysis.rsi %}
                     <div class="indicator-status {{ analysis.rsi_signal if analysis.rsi_signal else 'neutral' }}">
@@ -126,137 +84,116 @@
                     </div>
                     {% endif %}
                 </div>
-                
                 <div class="indicator-card">
-                    <div class="indicator-header">
-                        <span class="indicator-label">MA 20</span>
-                        <i class="fas fa-wave-square"></i>
-                    </div>
+                    <div class="indicator-header"><span class="indicator-label">MA 20</span><i class="fas fa-wave-square"></i></div>
                     <div class="indicator-value">{{ "%.2f"|format(analysis.ma_20) if analysis and analysis.ma_20 else '--' }}</div>
-                    {% if analysis and analysis.ma_20 and current_price %}
-                    <div class="indicator-status {% if current_price > analysis.ma_20 %}success{% else %}danger{% endif %}">
-                        {% if current_price > analysis.ma_20 %}Au-dessus{% else %}En-dessous{% endif %}
-                    </div>
-                    {% endif %}
                 </div>
-                
                 <div class="indicator-card">
-                    <div class="indicator-header">
-                        <span class="indicator-label">MA 50</span>
-                        <i class="fas fa-wave-square"></i>
-                    </div>
+                    <div class="indicator-header"><span class="indicator-label">MA 50</span><i class="fas fa-wave-square"></i></div>
                     <div class="indicator-value">{{ "%.2f"|format(analysis.ma_50) if analysis and analysis.ma_50 else '--' }}</div>
-                    {% if analysis and analysis.ma_50 and current_price %}
-                    <div class="indicator-status {% if current_price > analysis.ma_50 %}success{% else %}danger{% endif %}">
-                        {% if current_price > analysis.ma_50 %}Au-dessus{% else %}En-dessous{% endif %}
-                    </div>
-                    {% endif %}
                 </div>
-                
                 <div class="indicator-card">
-                    <div class="indicator-header">
-                        <span class="indicator-label">Volume</span>
-                        <i class="fas fa-chart-bar"></i>
-                    </div>
+                    <div class="indicator-header"><span class="indicator-label">Volume</span><i class="fas fa-chart-bar"></i></div>
                     <div class="indicator-value">{{ "{:,.0f}".format(current_volume) if current_volume else '--' }}</div>
-                    <div class="indicator-status neutral">
-                        {{ period_label if period_label else '6M' }}
-                    </div>
                 </div>
             </div>
             
-            <!-- Technical Info Card -->
             <div class="info-card">
-                <h3 class="info-card-title">
-                    <i class="fas fa-info-circle"></i>
-                    Informations techniques
-                </h3>
+                <h3 class="info-card-title"><i class="fas fa-info-circle"></i>Informations techniques</h3>
                 <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">Volatilité</span>
-                        <span class="info-value">{{ "%.2f"|format(analysis.volatility) if analysis and analysis.volatility else '--' }}%</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Plus haut 52S</span>
-                        <span class="info-value">${{ "%.2f"|format(stock_info.fiftyTwoWeekHigh) if stock_info and stock_info.fiftyTwoWeekHigh else '--' }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Plus bas 52S</span>
-                        <span class="info-value">${{ "%.2f"|format(stock_info.fiftyTwoWeekLow) if stock_info and stock_info.fiftyTwoWeekLow else '--' }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Beta</span>
-                        <span class="info-value">{{ "%.2f"|format(stock_info.beta) if stock_info and stock_info.beta else '--' }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">P/E Ratio</span>
-                        <span class="info-value">{{ "%.2f"|format(stock_info.peRatio) if stock_info and stock_info.peRatio else '--' }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Dividende</span>
-                        <span class="info-value">{{ "%.2f"|format(stock_info.dividendYield * 100) if stock_info and stock_info.dividendYield else '0.00' }}%</span>
-                    </div>
+                    <div class="info-item"><span class="info-label">Volatilité</span><span class="info-value">--</span></div>
+                    <div class="info-item"><span class="info-label">Plus haut 52S</span><span class="info-value">${{ "%.2f"|format(stock_info.fiftyTwoWeekHigh) if stock_info and stock_info.fiftyTwoWeekHigh else '--' }}</span></div>
+                    <div class="info-item"><span class="info-label">Plus bas 52S</span><span class="info-value">${{ "%.2f"|format(stock_info.fiftyTwoWeekLow) if stock_info and stock_info.fiftyTwoWeekLow else '--' }}</span></div>
+                    <div class="info-item"><span class="info-label">Beta</span><span class="info-value">{{ "%.2f"|format(stock_info.beta) if stock_info and stock_info.beta else '--' }}</span></div>
+                    <div class="info-item"><span class="info-label">P/E Ratio</span><span class="info-value">{{ "%.2f"|format(stock_info.peRatio) if stock_info and stock_info.peRatio else '--' }}</span></div>
+                    <div class="info-item"><span class="info-label">Dividende</span><span class="info-value">{{ "%.2f"|format(stock_info.dividendYield * 100) if stock_info and stock_info.dividendYield else '0.00' }}%</span></div>
                 </div>
             </div>
             
-            <!-- Trading Signals -->
-            <div class="signals-grid">
-                {% if analysis and analysis.signals %}
-                    {% for signal in analysis.signals %}
-                    <div class="signal-card {{ signal.type }}">
-                        <div class="signal-icon">
-                            <i class="fas fa-{{ signal.icon if signal.icon else 'chart-line' }}"></i>
-                        </div>
-                        <div class="signal-content">
-                            <h4 class="signal-title">{{ signal.title }}</h4>
-                            <p class="signal-description">{{ signal.description }}</p>
-                            <span class="signal-value">{{ signal.value }}</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                <div class="signal-card neutral">
-                    <div class="signal-icon">
-                        <i class="fas fa-info-circle"></i>
-                    </div>
-                    <div class="signal-content">
-                        <h4 class="signal-title">Aucun signal fort</h4>
-                        <p class="signal-description">Les indicateurs ne montrent pas de signal clair pour le moment.</p>
-                    </div>
+            {% if chart_data %}
+            <div class="chart-container-wrapper">
+                <div class="chart-container-header">
+                    <h3 class="chart-title"><i class="fas fa-chart-candlestick"></i>Graphique des prix</h3>
                 </div>
-                {% endif %}
+                <div class="chart-container-body" id="price-chart" style="width:100%; height:500px;"></div>
             </div>
             
-            <!-- Charts -->
-            <div class="charts-section">
-                <!-- Price Chart -->
-                {% include 'components/chart_container.html' %}
-                
-                <!-- MACD Chart -->
-                {% include 'components/chart_container.html' %}
-            </div>
+            <script>
+            // CHART RENDERING - DIRECT INLINE
+            (function() {
+                try {
+                    console.log('Rendering chart...');
+                    var rawData = {{ chart_data|safe }};
+                    console.log('Data loaded:', rawData);
+                    
+                    if (!rawData || !rawData.dates || rawData.dates.length === 0) {
+                        document.getElementById('price-chart').innerHTML = '<div style="padding:3rem;text-align:center;color:#ff3366;">Aucune donnée disponible</div>';
+                        return;
+                    }
+                    
+                    var traces = [
+                        {
+                            x: rawData.dates,
+                            close: rawData.close,
+                            high: rawData.high,
+                            low: rawData.low,
+                            open: rawData.open,
+                            type: 'candlestick',
+                            name: '{{ ticker }}',
+                            increasing: {line: {color: '#00E676'}},
+                            decreasing: {line: {color: '#FF3366'}}
+                        },
+                        {
+                            x: rawData.dates,
+                            y: rawData.ma20,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'MA 20',
+                            line: {color: '#FF9800', width: 2}
+                        },
+                        {
+                            x: rawData.dates,
+                            y: rawData.ma50,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'MA 50',
+                            line: {color: '#2196F3', width: 2}
+                        }
+                    ];
+                    
+                    var layout = {
+                        paper_bgcolor: 'rgba(0,0,0,0)',
+                        plot_bgcolor: 'rgba(0,0,0,0)',
+                        font: {color: '#E8EAED', family: 'Inter'},
+                        xaxis: {gridcolor: '#2A2F3A', showgrid: true, rangeslider: {visible: false}},
+                        yaxis: {gridcolor: '#2A2F3A', showgrid: true, side: 'right'},
+                        margin: {l: 50, r: 50, t: 20, b: 40},
+                        hovermode: 'x unified',
+                        showlegend: true,
+                        legend: {orientation: 'h', y: -0.15}
+                    };
+                    
+                    var config = {responsive: true, displayModeBar: true, displaylogo: false};
+                    
+                    Plotly.newPlot('price-chart', traces, layout, config);
+                    console.log('✓ Chart rendered');
+                } catch (e) {
+                    console.error('Chart error:', e);
+                    document.getElementById('price-chart').innerHTML = '<div style="padding:3rem;text-align:center;color:#ff3366;">Erreur: ' + e.message + '</div>';
+                }
+            })();
+            </script>
+            {% endif %}
             
-            <!-- Historical Data Table -->
             {% if historical_data and historical_data|length > 0 %}
             <div class="table-card">
                 <div class="table-card-header">
-                    <h3 class="table-card-title">
-                        <i class="fas fa-table"></i>
-                        Données historiques (10 derniers jours)
-                    </h3>
+                    <h3 class="table-card-title"><i class="fas fa-table"></i>Données historiques (10 derniers jours)</h3>
                 </div>
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Ouverture</th>
-                                <th>Plus haut</th>
-                                <th>Plus bas</th>
-                                <th>Clôture</th>
-                                <th>Volume</th>
-                                <th>Variation</th>
-                            </tr>
+                            <tr><th>Date</th><th>Ouverture</th><th>Plus haut</th><th>Plus bas</th><th>Clôture</th><th>Volume</th><th>Variation</th></tr>
                         </thead>
                         <tbody>
                             {% for row in historical_data[-10:]|reverse %}
@@ -267,9 +204,7 @@
                                 <td class="price-cell">${{ "%.2f"|format(row.low) }}</td>
                                 <td class="price-cell strong">${{ "%.2f"|format(row.close) }}</td>
                                 <td class="volume-cell">{{ "{:,.0f}".format(row.volume) }}</td>
-                                <td class="change-cell {% if row.change >= 0 %}positive{% else %}negative{% endif %}">
-                                    {{ "%.2f"|format(row.change) }}%
-                                </td>
+                                <td class="change-cell {% if row.change >= 0 %}positive{% else %}negative{% endif %}">{{ "%.2f"|format(row.change) }}%</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -281,113 +216,8 @@
         {% endif %}
     </div>
     
-    <!-- Footer -->
     {% include 'components/footer.html' %}
     
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
-    
-    {% if chart_data %}
-    <script>
-    // Render Price Chart
-    (function() {
-        const chartData = {{ chart_data|tojson }};
-        if (chartData && chartData.dates) {
-            const priceTrace = {
-                x: chartData.dates,
-                close: chartData.close,
-                high: chartData.high,
-                low: chartData.low,
-                open: chartData.open,
-                type: 'candlestick',
-                name: '{{ ticker }}',
-                increasing: {line: {color: '#00E676'}},
-                decreasing: {line: {color: '#FF3366'}}
-            };
-            
-            const ma20Trace = {
-                x: chartData.dates,
-                y: chartData.ma20,
-                type: 'scatter',
-                mode: 'lines',
-                name: 'MA 20',
-                line: {color: '#0066FF', width: 2}
-            };
-            
-            const ma50Trace = {
-                x: chartData.dates,
-                y: chartData.ma50,
-                type: 'scatter',
-                mode: 'lines',
-                name: 'MA 50',
-                line: {color: '#00D9FF', width: 2}
-            };
-            
-            const layout = {
-                paper_bgcolor: 'transparent',
-                plot_bgcolor: 'transparent',
-                font: {color: '#E8EAED', family: 'Inter'},
-                xaxis: {gridcolor: '#2A2F3A', showgrid: true},
-                yaxis: {gridcolor: '#2A2F3A', showgrid: true, side: 'right'},
-                margin: {l: 50, r: 50, t: 20, b: 40},
-                hovermode: 'x unified',
-                showlegend: true,
-                legend: {orientation: 'h', y: -0.15}
-            };
-            
-            const config = {responsive: true, displayModeBar: true};
-            
-            Plotly.newPlot('price-chart', [priceTrace, ma20Trace, ma50Trace], layout, config);
-            
-            // Hide loading
-            document.dispatchEvent(new CustomEvent('chartReady', {
-                detail: {chartId: 'price-chart'}
-            }));
-        }
-        
-        // Render MACD Chart if data available
-        {% if macd_data %}
-        const macdData = {{ macd_data|tojson }};
-        if (macdData && macdData.dates) {
-            const macdTrace = {
-                x: macdData.dates,
-                y: macdData.macd,
-                type: 'scatter',
-                mode: 'lines',
-                name: 'MACD',
-                line: {color: '#0066FF', width: 2}
-            };
-            
-            const signalTrace = {
-                x: macdData.dates,
-                y: macdData.signal,
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Signal',
-                line: {color: '#FF9800', width: 2}
-            };
-            
-            const histogramTrace = {
-                x: macdData.dates,
-                y: macdData.histogram,
-                type: 'bar',
-                name: 'Histogram',
-                marker: {
-                    color: macdData.histogram.map(v => v >= 0 ? '#00E676' : '#FF3366')
-                }
-            };
-            
-            Plotly.newPlot('macd-chart', [macdTrace, signalTrace, histogramTrace], layout, config);
-            
-            document.dispatchEvent(new CustomEvent('chartReady', {
-                detail: {chartId: 'macd-chart'}
-            }));
-        }
-        {% endif %}
-    })();
-    </script>
-    {% endif %}
 </body>
 </html>

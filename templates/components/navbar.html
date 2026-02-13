@@ -1,7 +1,6 @@
-<!-- templates/components/navbar.html -->
+<!-- templates/components/navbar.html - WITH REAL-TIME UPDATES -->
 <nav class="main-navbar">
     <div class="navbar-container">
-        <!-- Logo/Brand -->
         <a href="/" class="navbar-brand">
             <div class="brand-icon">
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -22,102 +21,64 @@
             </div>
         </a>
 
-        <!-- Desktop Navigation -->
         <div class="nav-links desktop-nav">
             <a href="/" class="nav-link {% if request.endpoint == 'home' %}active{% endif %}">
-                <i class="fas fa-home"></i>
-                <span>Accueil</span>
+                <i class="fas fa-home"></i><span>Accueil</span>
             </a>
             <a href="/analyse" class="nav-link {% if request.endpoint == 'analyse' %}active{% endif %}">
-                <i class="fas fa-search"></i>
-                <span>Analyse</span>
+                <i class="fas fa-search"></i><span>Analyse</span>
             </a>
             <a href="/portefeuille" class="nav-link {% if request.endpoint == 'portefeuille' %}active{% endif %}">
-                <i class="fas fa-folder"></i>
-                <span>Portefeuille</span>
+                <i class="fas fa-folder"></i><span>Portefeuille</span>
             </a>
             <a href="/dashboard" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
-                <i class="fas fa-tachometer-alt"></i>
-                <span>Dashboard</span>
+                <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
             </a>
         </div>
 
-        <!-- Quick Search -->
         <div class="navbar-search">
-            <input type="text" 
-                   id="navbar-search-input" 
-                   class="navbar-search-input" 
-                   placeholder="Ticker..."
-                   autocomplete="off">
-            <button class="navbar-search-btn" onclick="navbarSearch()">
-                <i class="fas fa-search"></i>
-            </button>
+            <input type="text" id="navbar-search-input" class="navbar-search-input" placeholder="Ticker..." autocomplete="off">
+            <button class="navbar-search-btn" onclick="navbarSearch()"><i class="fas fa-search"></i></button>
             <div id="navbar-search-suggestions" class="navbar-search-suggestions"></div>
         </div>
 
-        <!-- User Actions -->
         <div class="navbar-actions">
-            <!-- Theme Toggle -->
             <button class="navbar-action-btn" id="theme-toggle" title="Toggle dark/light mode">
                 <i class="fas fa-moon" id="theme-icon"></i>
             </button>
-
-            <!-- Notifications -->
-            <button class="navbar-action-btn" id="notifications-btn" title="Notifications">
-                <i class="fas fa-bell"></i>
-                <span class="notification-badge">3</span>
-            </button>
-
-            <!-- Mobile Menu Toggle -->
             <button class="navbar-action-btn mobile-menu-toggle" id="mobile-menu-btn">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
     </div>
 
-    <!-- Market Ticker -->
+    <!-- Market Ticker - REAL TIME -->
     <div class="market-ticker-bar">
-        <div class="ticker-scroll">
-            <div class="ticker-item">
+        <div class="ticker-scroll" id="ticker-scroll">
+            <div class="ticker-item" data-ticker="^IXIC">
                 <span class="ticker-symbol">NASDAQ</span>
-                <span class="ticker-price">14,532.12</span>
-                <span class="ticker-change positive">+1.2%</span>
+                <span class="ticker-price" id="price-^IXIC">...</span>
+                <span class="ticker-change" id="change-^IXIC">...</span>
             </div>
-            <div class="ticker-item">
+            <div class="ticker-item" data-ticker="^GSPC">
                 <span class="ticker-symbol">S&P 500</span>
-                <span class="ticker-price">4,567.89</span>
-                <span class="ticker-change positive">+0.8%</span>
+                <span class="ticker-price" id="price-^GSPC">...</span>
+                <span class="ticker-change" id="change-^GSPC">...</span>
             </div>
-            <div class="ticker-item">
+            <div class="ticker-item" data-ticker="^FCHI">
                 <span class="ticker-symbol">CAC 40</span>
-                <span class="ticker-price">7,234.56</span>
-                <span class="ticker-change negative">-0.5%</span>
+                <span class="ticker-price" id="price-^FCHI">...</span>
+                <span class="ticker-change" id="change-^FCHI">...</span>
             </div>
-            <div class="ticker-item">
-                <span class="ticker-symbol">EUR/USD</span>
-                <span class="ticker-price">1.0876</span>
-                <span class="ticker-change positive">+0.3%</span>
+            <div class="ticker-item" data-ticker="AAPL">
+                <span class="ticker-symbol">AAPL</span>
+                <span class="ticker-price" id="price-AAPL">...</span>
+                <span class="ticker-change" id="change-AAPL">...</span>
             </div>
-            <div class="ticker-item">
-                <span class="ticker-symbol">BTC/USD</span>
-                <span class="ticker-price">43,125.50</span>
-                <span class="ticker-change positive">+2.1%</span>
-            </div>
-            <!-- Duplicate for seamless scroll -->
-            <div class="ticker-item">
-                <span class="ticker-symbol">NASDAQ</span>
-                <span class="ticker-price">14,532.12</span>
-                <span class="ticker-change positive">+1.2%</span>
-            </div>
-            <div class="ticker-item">
-                <span class="ticker-symbol">S&P 500</span>
-                <span class="ticker-price">4,567.89</span>
-                <span class="ticker-change positive">+0.8%</span>
-            </div>
-            <div class="ticker-item">
-                <span class="ticker-symbol">CAC 40</span>
-                <span class="ticker-price">7,234.56</span>
-                <span class="ticker-change negative">-0.5%</span>
+            <div class="ticker-item" data-ticker="TSLA">
+                <span class="ticker-symbol">TSLA</span>
+                <span class="ticker-price" id="price-TSLA">...</span>
+                <span class="ticker-change" id="change-TSLA">...</span>
             </div>
         </div>
     </div>
@@ -128,117 +89,46 @@
     <div class="mobile-nav-content">
         <div class="mobile-nav-header">
             <h3>Menu</h3>
-            <button class="close-mobile-nav" id="close-mobile-nav">
-                <i class="fas fa-times"></i>
-            </button>
+            <button class="close-mobile-nav" id="close-mobile-nav"><i class="fas fa-times"></i></button>
         </div>
         <nav class="mobile-nav-links">
-            <a href="/" class="mobile-nav-link">
-                <i class="fas fa-home"></i>
-                <span>Accueil</span>
-            </a>
-            <a href="/analyse" class="mobile-nav-link">
-                <i class="fas fa-search"></i>
-                <span>Analyse</span>
-            </a>
-            <a href="/portefeuille" class="mobile-nav-link">
-                <i class="fas fa-folder"></i>
-                <span>Portefeuille</span>
-            </a>
-            <a href="/dashboard" class="mobile-nav-link">
-                <i class="fas fa-tachometer-alt"></i>
-                <span>Dashboard</span>
-            </a>
+            <a href="/" class="mobile-nav-link"><i class="fas fa-home"></i><span>Accueil</span></a>
+            <a href="/analyse" class="mobile-nav-link"><i class="fas fa-search"></i><span>Analyse</span></a>
+            <a href="/portefeuille" class="mobile-nav-link"><i class="fas fa-folder"></i><span>Portefeuille</span></a>
+            <a href="/dashboard" class="mobile-nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
         </nav>
     </div>
 </div>
 
-<!-- Notifications Panel -->
-<div class="notifications-panel" id="notifications-panel">
-    <div class="notifications-header">
-        <h4>Notifications</h4>
-        <button class="close-notifications" id="close-notifications">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-    <div class="notifications-content">
-        <div class="notification-item unread">
-            <div class="notification-icon success">
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <div class="notification-text">
-                <p><strong>AAPL</strong> RSI signal detected</p>
-                <span class="notification-time">5 minutes ago</span>
-            </div>
-        </div>
-        <div class="notification-item unread">
-            <div class="notification-icon warning">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <div class="notification-text">
-                <p><strong>TSLA</strong> crossed MA50</p>
-                <span class="notification-time">1 hour ago</span>
-            </div>
-        </div>
-        <div class="notification-item">
-            <div class="notification-icon info">
-                <i class="fas fa-info-circle"></i>
-            </div>
-            <div class="notification-text">
-                <p>Market update available</p>
-                <span class="notification-time">3 hours ago</span>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
-// Navbar functionality
 (function() {
     'use strict';
     
-    // Search functionality
+    // Search
     window.navbarSearch = function() {
         const input = document.getElementById('navbar-search-input');
         const ticker = input.value.trim().toUpperCase();
-        if (ticker) {
-            window.location.href = `/analyse?ticker=${ticker}`;
-        }
+        if (ticker) window.location.href = `/analyse?ticker=${ticker}`;
     };
     
-    // Enter key in search
     const searchInput = document.getElementById('navbar-search-input');
     if (searchInput) {
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                navbarSearch();
-            }
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); navbarSearch(); }
         });
         
-        // Search suggestions
         let searchTimeout;
         searchInput.addEventListener('input', function(e) {
             clearTimeout(searchTimeout);
             const query = e.target.value.trim();
-            
-            if (query.length < 2) {
-                hideNavbarSuggestions();
-                return;
-            }
-            
+            if (query.length < 2) { hideNavbarSuggestions(); return; }
             searchTimeout = setTimeout(async () => {
                 try {
                     const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
                     const data = await response.json();
-                    
-                    if (data.suggestions && data.suggestions.length > 0) {
-                        showNavbarSuggestions(data.suggestions);
-                    } else {
-                        hideNavbarSuggestions();
-                    }
-                } catch (error) {
-                    console.error('Search error:', error);
-                }
+                    if (data.suggestions && data.suggestions.length > 0) showNavbarSuggestions(data.suggestions);
+                    else hideNavbarSuggestions();
+                } catch (error) { console.error('Search error:', error); }
             }, 300);
         });
     }
@@ -246,52 +136,39 @@
     function showNavbarSuggestions(suggestions) {
         const container = document.getElementById('navbar-search-suggestions');
         if (!container) return;
-        
         let html = '';
         suggestions.slice(0, 5).forEach(item => {
-            html += `
-                <div class="suggestion-item" onclick="window.location.href='/analyse?ticker=${item.symbol}'">
-                    <span class="suggestion-ticker">${item.symbol}</span>
-                    <span class="suggestion-name">${item.name}</span>
-                </div>
-            `;
+            html += `<div class="suggestion-item" onclick="window.location.href='/analyse?ticker=${item.symbol}'">
+                <span class="suggestion-ticker">${item.symbol}</span>
+                <span class="suggestion-name">${item.name}</span>
+            </div>`;
         });
-        
         container.innerHTML = html;
         container.classList.add('active');
     }
     
     function hideNavbarSuggestions() {
         const container = document.getElementById('navbar-search-suggestions');
-        if (container) {
-            container.classList.remove('active');
-        }
+        if (container) container.classList.remove('active');
     }
     
-    // Click outside to close suggestions
     document.addEventListener('click', function(e) {
         const search = document.querySelector('.navbar-search');
-        if (search && !search.contains(e.target)) {
-            hideNavbarSuggestions();
-        }
+        if (search && !search.contains(e.target)) hideNavbarSuggestions();
     });
     
     // Theme toggle
     const themeToggle = document.getElementById('theme-toggle');
     const themeIcon = document.getElementById('theme-icon');
-    
-    // Load saved theme
     const savedTheme = localStorage.getItem('theme') || 'dark';
     if (savedTheme === 'light') {
         document.body.classList.add('light-mode');
         themeIcon.className = 'fas fa-sun';
     }
-    
     if (themeToggle) {
         themeToggle.addEventListener('click', function() {
             document.body.classList.toggle('light-mode');
             const isLight = document.body.classList.contains('light-mode');
-            
             themeIcon.className = isLight ? 'fas fa-sun' : 'fas fa-moon';
             localStorage.setItem('theme', isLight ? 'light' : 'dark');
         });
@@ -303,21 +180,19 @@
     const closeMobileNav = document.getElementById('close-mobile-nav');
     
     if (mobileMenuBtn) {
-        mobileMenuBtn.addEventListener('click', function() {
+        mobileMenuBtn.addEventListener('click', () => {
             mobileOverlay.classList.add('active');
             document.body.style.overflow = 'hidden';
         });
     }
-    
     if (closeMobileNav) {
-        closeMobileNav.addEventListener('click', function() {
+        closeMobileNav.addEventListener('click', () => {
             mobileOverlay.classList.remove('active');
             document.body.style.overflow = '';
         });
     }
-    
     if (mobileOverlay) {
-        mobileOverlay.addEventListener('click', function(e) {
+        mobileOverlay.addEventListener('click', (e) => {
             if (e.target === mobileOverlay) {
                 mobileOverlay.classList.remove('active');
                 document.body.style.overflow = '';
@@ -325,42 +200,34 @@
         });
     }
     
-    // Notifications
-    const notificationsBtn = document.getElementById('notifications-btn');
-    const notificationsPanel = document.getElementById('notifications-panel');
-    const closeNotifications = document.getElementById('close-notifications');
-    
-    if (notificationsBtn) {
-        notificationsBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            notificationsPanel.classList.toggle('active');
-        });
-    }
-    
-    if (closeNotifications) {
-        closeNotifications.addEventListener('click', function() {
-            notificationsPanel.classList.remove('active');
-        });
-    }
-    
-    // Close notifications when clicking outside
-    document.addEventListener('click', function(e) {
-        if (notificationsPanel && !notificationsPanel.contains(e.target) && 
-            !notificationsBtn.contains(e.target)) {
-            notificationsPanel.classList.remove('active');
-        }
-    });
-    
-    // Mark notifications as read when opened
-    if (notificationsBtn) {
-        notificationsBtn.addEventListener('click', function() {
-            setTimeout(() => {
-                const badge = this.querySelector('.notification-badge');
-                if (badge) {
-                    badge.style.display = 'none';
+    // REAL-TIME TICKER UPDATES
+    async function updateTickerPrices() {
+        const tickers = ['^IXIC', '^GSPC', '^FCHI', 'AAPL', 'TSLA'];
+        for (const ticker of tickers) {
+            try {
+                const response = await fetch(`/api/quote/${encodeURIComponent(ticker)}`);
+                const data = await response.json();
+                
+                const priceEl = document.getElementById(`price-${ticker}`);
+                const changeEl = document.getElementById(`change-${ticker}`);
+                
+                if (priceEl && data.price) {
+                    priceEl.textContent = `$${data.price.toFixed(2)}`;
                 }
-            }, 1000);
-        });
+                
+                if (changeEl && data.changePercent !== undefined) {
+                    const changePercent = data.changePercent;
+                    changeEl.textContent = `${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%`;
+                    changeEl.className = `ticker-change ${changePercent >= 0 ? 'positive' : 'negative'}`;
+                }
+            } catch (error) {
+                console.error(`Error updating ${ticker}:`, error);
+            }
+        }
     }
+    
+    // Update immediately and then every 30 seconds
+    updateTickerPrices();
+    setInterval(updateTickerPrices, 30000);
 })();
 </script>
