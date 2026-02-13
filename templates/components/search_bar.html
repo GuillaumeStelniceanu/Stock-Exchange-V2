@@ -1,181 +1,207 @@
 <!-- templates/components/search_bar.html -->
-<div class="search-bar-component">
-    <div class="search-bar-wrapper">
-        <div class="search-icon-wrapper">
-            <i class="fas fa-search"></i>
-        </div>
-        <input type="text" 
-               class="search-bar-input" 
-               id="{% if input_id %}{{ input_id }}{% else %}search-bar-input{% endif %}"
-               placeholder="{% if placeholder %}{{ placeholder }}{% else %}Rechercher une action (ex: AAPL, MSFT, TTE.PA)...{% endif %}"
-               value="{% if value %}{{ value }}{% endif %}"
-               autocomplete="off">
-        <button class="search-bar-button" onclick="searchBarSubmit{% if input_id %}{{ input_id|title }}{% endif %}()">
-            <i class="fas fa-chart-line"></i>
-            <span>Analyser</span>
-        </button>
+<div class="search-bar-component" id="search-bar-root">
+
+    <!-- ── Input row — no button ── -->
+    <div id="search-wrapper" onclick="document.getElementById('search-input').focus()" style="
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        height: 60px;
+        background: var(--bg-card, #1a1f2e);
+        border: 2px solid var(--border, rgba(255,255,255,0.08));
+        border-radius: 1rem;
+        transition: border-color 0.3s, box-shadow 0.3s;
+        cursor: text;
+    ">
+        <!-- Loupe — hides when typing -->
+        <span id="sb-icon" style="
+            flex-shrink: 0;
+            padding: 0 0.875rem 0 1.25rem;
+            color: #6b7280;
+            font-size: 1rem;
+            pointer-events: none;
+            transition: opacity 0.15s, max-width 0.15s, padding 0.15s;
+            max-width: 52px;
+            overflow: hidden;
+        "><i class="fas fa-search"></i></span>
+
+        <!-- Input takes full width -->
+        <input
+            type="text"
+            id="search-input"
+            placeholder="Rechercher une action (ex: AAPL, MSFT, TTE.PA)..."
+            autocomplete="off"
+            style="
+                flex: 1 1 auto;
+                min-width: 0;
+                height: 100%;
+                padding: 0 1.25rem 0 0.25rem;
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.9375rem;
+                font-weight: 500;
+                background: transparent;
+                border: none;
+                outline: none;
+                color: var(--text-primary, #e8eaed);
+                cursor: text;
+            "
+        >
     </div>
-    
-    <div id="{% if suggestions_id %}{{ suggestions_id }}{% else %}search-bar-suggestions{% endif %}" 
-         class="search-bar-suggestions">
-    </div>
-    
-    <!-- Popular stocks quick access -->
+
+    <!-- ── Dropdown ── -->
+    <div id="sb-drop" style="
+        display: none;
+        position: fixed;
+        z-index: 99999;
+        background: rgb(10, 17, 32);
+        border: 1px solid rgba(0,102,255,0.5);
+        border-radius: 0.875rem;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+        max-height: 520px;
+        overflow-y: auto;
+    "></div>
+
+    <!-- ── Quick actions ── -->
     <div class="search-quick-actions">
         <span class="quick-label">Actions populaires:</span>
-        <button class="quick-stock-btn" onclick="quickAnalyze('AAPL')">
-            <i class="fab fa-apple"></i> AAPL
-        </button>
-        <button class="quick-stock-btn" onclick="quickAnalyze('MSFT')">
-            <i class="fab fa-microsoft"></i> MSFT
-        </button>
-        <button class="quick-stock-btn" onclick="quickAnalyze('GOOGL')">
-            <i class="fab fa-google"></i> GOOGL
-        </button>
-        <button class="quick-stock-btn" onclick="quickAnalyze('TSLA')">
-            <i class="fas fa-car"></i> TSLA
-        </button>
-        <button class="quick-stock-btn" onclick="quickAnalyze('TTE.PA')">
-            <i class="fas fa-gas-pump"></i> TTE
-        </button>
+        <button class="quick-stock-btn" onclick="window.location.href='/analyse?ticker=AAPL'"><i class="fab fa-apple"></i> AAPL</button>
+        <button class="quick-stock-btn" onclick="window.location.href='/analyse?ticker=MSFT'"><i class="fab fa-microsoft"></i> MSFT</button>
+        <button class="quick-stock-btn" onclick="window.location.href='/analyse?ticker=GOOGL'"><i class="fab fa-google"></i> GOOGL</button>
+        <button class="quick-stock-btn" onclick="window.location.href='/analyse?ticker=TSLA'"><i class="fas fa-car"></i> TSLA</button>
+        <button class="quick-stock-btn" onclick="window.location.href='/analyse?ticker=TTE.PA'"><i class="fas fa-gas-pump"></i> TTE</button>
     </div>
 </div>
 
 <script>
-(function() {
-    'use strict';
-    
-    const inputId = '{% if input_id %}{{ input_id }}{% else %}search-bar-input{% endif %}';
-    const suggestionsId = '{% if suggestions_id %}{{ suggestions_id }}{% else %}search-bar-suggestions{% endif %}';
-    
-    // Submit function
-    window.searchBarSubmit{% if input_id %}{{ input_id|title }}{% endif %} = function() {
-        const input = document.getElementById(inputId);
-        const ticker = input.value.trim().toUpperCase();
-        if (ticker) {
-            window.location.href = `/analyse?ticker=${ticker}`;
-        }
-    };
-    
-    // Quick analyze function
-    window.quickAnalyze = function(ticker) {
-        window.location.href = `/analyse?ticker=${ticker}`;
-    };
-    
-    // Get input element
-    const input = document.getElementById(inputId);
-    const suggestions = document.getElementById(suggestionsId);
-    
-    if (!input || !suggestions) return;
-    
-    // Enter key support
-    input.addEventListener('keypress', function(e) {
+(function () {
+    var input   = document.getElementById('search-input');
+    var drop    = document.getElementById('sb-drop');
+    var icon    = document.getElementById('sb-icon');
+    var wrapper = document.getElementById('search-wrapper');
+    if (!input || !drop) return;
+
+    /* Focus highlight */
+    input.addEventListener('focus', function () {
+        wrapper.style.borderColor = '#0066FF';
+        wrapper.style.boxShadow   = '0 0 0 4px rgba(0,102,255,0.12)';
+    });
+    input.addEventListener('blur', function () {
+        setTimeout(function () {
+            wrapper.style.borderColor = '';
+            wrapper.style.boxShadow   = '';
+        }, 150);
+    });
+
+    /* Enter → navigate */
+    input.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
-            e.preventDefault();
-            searchBarSubmit{% if input_id %}{{ input_id|title }}{% endif %}();
+            var t = input.value.trim().toUpperCase();
+            if (t) window.location.href = '/analyse?ticker=' + t;
         }
     });
-    
-    // Search suggestions with debounce
-    let searchTimeout;
-    input.addEventListener('input', function(e) {
-        clearTimeout(searchTimeout);
-        const query = e.target.value.trim();
-        
-        if (query.length < 2) {
-            hideSuggestions();
-            return;
+
+    /* Typing → search */
+    input.addEventListener('input', function () {
+        /* Toggle icon */
+        if (input.value.length > 0) {
+            icon.style.opacity  = '0';
+            icon.style.maxWidth = '0';
+            icon.style.padding  = '0';
+        } else {
+            icon.style.opacity  = '1';
+            icon.style.maxWidth = '52px';
+            icon.style.padding  = '';
         }
-        
-        searchTimeout = setTimeout(async () => {
-            try {
-                const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-                const data = await response.json();
-                
-                if (data.suggestions && data.suggestions.length > 0) {
-                    showSuggestions(data.suggestions);
-                } else {
-                    showNoResults();
-                }
-            } catch (error) {
-                console.error('Search error:', error);
-                hideSuggestions();
-            }
-        }, 300);
+
+        var q = input.value.trim();
+        if (q.length < 2) { closeDrop(); return; }
+
+        clearTimeout(input._t);
+        input._t = setTimeout(function () {
+            fetch('/api/search?q=' + encodeURIComponent(q))
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    var items = data.suggestions || [];
+                    items.length ? renderDrop(items) : emptyDrop(q);
+                })
+                .catch(closeDrop);
+        }, 260);
     });
-    
-    function showSuggestions(items) {
-        let html = '';
-        items.slice(0, 8).forEach(item => {
-            const market = item.market || (item.symbol.includes('.PA') ? 'EU' : 'US');
-            html += `
-                <div class="search-suggestion-item" onclick="quickAnalyze('${item.symbol}')">
-                    <div class="suggestion-main-info">
-                        <span class="suggestion-ticker-text">${item.symbol}</span>
-                        <span class="suggestion-name-text">${item.name || item.symbol}</span>
-                    </div>
-                    <span class="suggestion-market-badge ${market.toLowerCase()}">${market}</span>
-                </div>
-            `;
+
+    function positionDrop() {
+        var rect = wrapper.getBoundingClientRect();
+        drop.style.top    = (rect.bottom + 8) + 'px';
+        drop.style.left   = rect.left + 'px';
+        drop.style.width  = rect.width + 'px';
+    }
+
+    function renderDrop(items) {
+        positionDrop();
+        var html = '<div style="padding:0.4rem 1rem;font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#4b5563;border-bottom:1px solid rgba(255,255,255,0.05);">'
+                 + items.length + ' résultat' + (items.length > 1 ? 's' : '') + '</div>';
+
+        items.slice(0, 10).forEach(function (item) {
+            var sym  = String(item.symbol || item.ticker || '');
+            var name = String(item.name   || '');
+            var mkt  = String(item.market || '');
+            if (!sym) return;
+
+            var initials   = sym.replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase() || sym.slice(0, 2);
+            var isEU       = mkt.toUpperCase() === 'EU';
+            var badgeStyle = isEU
+                ? 'background:rgba(0,217,255,0.12);color:#00d9ff;border:1px solid rgba(0,217,255,0.3);'
+                : 'background:rgba(0,102,255,0.14);color:#4d8ff5;border:1px solid rgba(0,102,255,0.3);';
+
+            html += '<div onclick="window.location.href=\'/analyse?ticker=' + encodeURIComponent(sym) + '\'"'
+                  + ' style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;"'
+                  + ' onmouseover="this.style.background=\'rgba(0,102,255,0.1)\'"'
+                  + ' onmouseout="this.style.background=\'transparent\'">'
+
+                  + '<div style="flex-shrink:0;width:44px;height:44px;border-radius:10px;background:rgba(0,102,255,0.14);border:1px solid rgba(0,102,255,0.22);display:flex;align-items:center;justify-content:center;font-family:JetBrains Mono,monospace;font-size:0.8125rem;font-weight:700;color:#4d8ff5;">'
+                  + initials + '</div>'
+
+                  + '<div style="flex:1;min-width:0;">'
+                  + '<div style="font-family:JetBrains Mono,monospace;font-size:1rem;font-weight:700;color:#e8eaed;line-height:1.2;">' + sym + '</div>'
+                  + '<div style="font-size:0.875rem;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + name + '</div>'
+                  + '</div>'
+
+                  + '<span style="flex-shrink:0;font-family:JetBrains Mono,monospace;font-size:0.6875rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:5px 12px;border-radius:6px;font-size:0.75rem;' + badgeStyle + '">' + mkt + '</span>'
+                  + '<i class="fas fa-chevron-right" style="color:rgba(255,255,255,0.2);font-size:0.75rem;"></i>'
+                  + '</div>';
         });
-        
-        suggestions.innerHTML = html;
-        suggestions.classList.add('active');
+
+        drop.innerHTML = html;
+        drop.style.display = 'block';
     }
-    
-    function showNoResults() {
-        suggestions.innerHTML = `
-            <div class="search-no-results">
-                <i class="fas fa-search"></i>
-                <p>Aucun résultat trouvé</p>
-            </div>
-        `;
-        suggestions.classList.add('active');
+
+    function emptyDrop(q) {
+        positionDrop();
+        drop.innerHTML = '<div style="padding:1.5rem;text-align:center;color:#6b7280;font-size:0.875rem;">'
+                       + '<i class="fas fa-search" style="margin-right:0.5rem;opacity:0.3"></i>'
+                       + 'Aucun résultat pour <strong style="color:#9ca3af;">"' + q + '"</strong></div>';
+        drop.style.display = 'block';
     }
-    
-    function hideSuggestions() {
-        suggestions.classList.remove('active');
+
+    function closeDrop() {
+        drop.style.display = 'none';
     }
-    
-    // Close suggestions when clicking outside
-    document.addEventListener('click', function(e) {
-        const searchBar = input.closest('.search-bar-component');
-        if (searchBar && !searchBar.contains(e.target)) {
-            hideSuggestions();
-        }
+
+    window.addEventListener('scroll', function() {
+        if (drop.style.display !== 'none') positionDrop();
+    }, true);
+    window.addEventListener('resize', function() {
+        if (drop.style.display !== 'none') positionDrop();
     });
-    
-    // Keyboard navigation in suggestions
-    let selectedIndex = -1;
-    
-    input.addEventListener('keydown', function(e) {
-        const items = suggestions.querySelectorAll('.search-suggestion-item');
-        
-        if (items.length === 0) return;
-        
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            selectedIndex = (selectedIndex + 1) % items.length;
-            updateSelection(items);
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            selectedIndex = selectedIndex <= 0 ? items.length - 1 : selectedIndex - 1;
-            updateSelection(items);
-        } else if (e.key === 'Enter' && selectedIndex >= 0) {
-            e.preventDefault();
-            items[selectedIndex].click();
-        }
+
+    document.addEventListener('click', function (e) {
+        var root = document.getElementById('search-bar-root');
+        if (root && !root.contains(e.target)) closeDrop();
     });
-    
-    function updateSelection(items) {
-        items.forEach((item, index) => {
-            if (index === selectedIndex) {
-                item.classList.add('selected');
-                item.scrollIntoView({ block: 'nearest' });
-            } else {
-                item.classList.remove('selected');
-            }
-        });
-    }
+
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeDrop();
+    });
 })();
 </script>

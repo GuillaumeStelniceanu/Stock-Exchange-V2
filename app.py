@@ -144,18 +144,75 @@ def analyse():
         volatility = calculate_volatility(closes)
         
         # Calculate MA series for chart
-        ma20_series = []
-        ma50_series = []
-        for i in range(len(closes)):
-            if i >= 19:
-                ma20_series.append(calculate_ma(closes[:i+1], 20))
-            else:
-                ma20_series.append(None)
-            
-            if i >= 49:
-                ma50_series.append(calculate_ma(closes[:i+1], 50))
-            else:
-                ma50_series.append(None)
+        closes_arr = np.array(closes, dtype=float)
+        n = len(closes_arr)
+
+        def rolling_mean(arr, w):
+            result = [None] * len(arr)
+            for i in range(w - 1, len(arr)):
+                result[i] = float(np.mean(arr[i - w + 1:i + 1]))
+            return result
+
+        def rolling_std(arr, w):
+            result = [None] * len(arr)
+            for i in range(w - 1, len(arr)):
+                result[i] = float(np.std(arr[i - w + 1:i + 1], ddof=0))
+            return result
+
+        def ewm_series(arr, span):
+            alpha = 2.0 / (span + 1)
+            result = [None] * len(arr)
+            for i in range(len(arr)):
+                if result[i - 1] is None or i == 0:
+                    result[i] = float(arr[i])
+                else:
+                    result[i] = alpha * float(arr[i]) + (1 - alpha) * result[i - 1]
+            return result
+
+        ma20_series  = rolling_mean(closes_arr, 20)
+        ma50_series  = rolling_mean(closes_arr, 50)
+        ma200_series = rolling_mean(closes_arr, 200)
+
+        # Bollinger Bands (20, 2σ)
+        bb_mid   = rolling_mean(closes_arr, 20)
+        bb_std   = rolling_std(closes_arr, 20)
+        bb_upper = [bb_mid[i] + 2 * bb_std[i] if bb_mid[i] is not None else None for i in range(n)]
+        bb_lower = [bb_mid[i] - 2 * bb_std[i] if bb_mid[i] is not None else None for i in range(n)]
+
+        # RSI series (full, period=14)
+        rsi_series = [None] * n
+        if n >= 15:
+            deltas = np.diff(closes_arr)
+            gains  = np.where(deltas > 0,  deltas, 0.0)
+            losses = np.where(deltas < 0, -deltas, 0.0)
+            # Wilder smoothing: seed with simple mean of first 14
+            avg_gain = float(np.mean(gains[:14]))
+            avg_loss = float(np.mean(losses[:14]))
+            for i in range(14, n - 1):
+                avg_gain = (avg_gain * 13 + gains[i]) / 14
+                avg_loss = (avg_loss * 13 + losses[i]) / 14
+                rs = avg_gain / avg_loss if avg_loss != 0 else 0
+                rsi_series[i + 1] = round(100 - (100 / (1 + rs)), 2)
+
+        # MACD series (12, 26, 9)
+        ema12   = ewm_series(closes_arr, 12)
+        ema26   = ewm_series(closes_arr, 26)
+        macd_line   = [round(ema12[i] - ema26[i], 6) if ema12[i] and ema26[i] else None for i in range(n)]
+        macd_vals   = [v for v in macd_line if v is not None]
+        # Signal line: EWM-9 of MACD
+        macd_signal_raw = [None] * n
+        alpha9 = 2.0 / 10
+        last = None
+        for i in range(n):
+            if macd_line[i] is not None:
+                if last is None:
+                    last = macd_line[i]
+                else:
+                    last = alpha9 * macd_line[i] + (1 - alpha9) * last
+                macd_signal_raw[i] = round(last, 6)
+        macd_hist = [round(macd_line[i] - macd_signal_raw[i], 6)
+                     if (macd_line[i] is not None and macd_signal_raw[i] is not None) else None
+                     for i in range(n)]
         
         # Generate signals
         signals = []
@@ -202,15 +259,23 @@ def analyse():
             'signals': signals
         }
         
-        # FIXED: Proper JSON serialization for Plotly
+        # Full JSON payload — all indicators for premium chart
         chart_data = json.dumps({
-            'dates': dates,
-            'close': closes,
-            'open': opens,
-            'high': highs,
-            'low': lows,
-            'ma20': ma20_series,
-            'ma50': ma50_series
+            'dates':       dates,
+            'close':       closes,
+            'open':        opens,
+            'high':        highs,
+            'low':         lows,
+            'volume':      volumes,
+            'ma20':        ma20_series,
+            'ma50':        ma50_series,
+            'ma200':       ma200_series,
+            'bb_upper':    bb_upper,
+            'bb_lower':    bb_lower,
+            'rsi':         rsi_series,
+            'macd':        macd_line,
+            'macd_signal': macd_signal_raw,
+            'macd_hist':   macd_hist,
         })
         
         # Historical data for table
@@ -362,6 +427,7 @@ def search_tickers():
             if query in ticker.lower() or query in name.lower():
                 results.append({
                     'symbol': ticker,
+                    'ticker': ticker,
                     'name': name,
                     'market': market
                 })

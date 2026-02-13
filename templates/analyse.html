@@ -4,26 +4,229 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% if ticker %}{{ ticker }} - {% endif %}Analyse Technique</title>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Plotly MUST load FIRST -->
+
+    <!-- Plotly FIRST — mandatory -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/search_bar.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/chart_container.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/analyse.css') }}">
+
+    <style>
+    /* ═══════════════════════════════════════
+       PREMIUM CHART SECTION STYLES
+    ═══════════════════════════════════════ */
+
+    .charts-dashboard {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+
+    /* Main chart card */
+    .chart-card {
+        background: var(--bg-card, #131920);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 1.25rem;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    }
+
+    /* Card header with toolbar */
+    .chart-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .chart-card-title {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--text-primary, #e8eaed);
+        margin: 0;
+    }
+
+    .chart-card-title i {
+        color: var(--primary, #0066FF);
+        font-size: 1rem;
+    }
+
+    /* Indicator toggle pills */
+    .indicator-toggles {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .ind-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.3125rem 0.75rem;
+        border-radius: 99px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-family: 'JetBrains Mono', monospace;
+        cursor: pointer;
+        border: 1.5px solid;
+        transition: all 0.2s;
+        user-select: none;
+    }
+
+    .ind-toggle .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+    }
+
+    .ind-toggle[data-ind="ma20"]   { color: #FF9800; border-color: #FF9800; background: transparent; }
+    .ind-toggle[data-ind="ma50"]   { color: #2196F3; border-color: #2196F3; background: transparent; }
+    .ind-toggle[data-ind="ma200"]  { color: #AB47BC; border-color: #AB47BC; background: transparent; }
+    .ind-toggle[data-ind="bb"]     { color: #78909C; border-color: #78909C; background: transparent; }
+
+    .ind-toggle.active[data-ind="ma20"]  { background: rgba(255,152,0,0.18); }
+    .ind-toggle.active[data-ind="ma50"]  { background: rgba(33,150,243,0.18); }
+    .ind-toggle.active[data-ind="ma200"] { background: rgba(171,71,188,0.18); }
+    .ind-toggle.active[data-ind="bb"]    { background: rgba(120,144,156,0.18); }
+    .ind-toggle[data-ind="vwap"]   { color: #00E5FF; border-color: #00E5FF; background: transparent; }
+    .ind-toggle.active[data-ind="vwap"]  { background: rgba(0,229,255,0.15); }
+
+    /* Period selector tabs */
+    .period-tabs {
+        display: flex;
+        align-items: center;
+        background: rgba(255,255,255,0.04);
+        border-radius: 0.625rem;
+        padding: 3px;
+        gap: 2px;
+    }
+
+    .period-tab {
+        padding: 0.3125rem 0.75rem;
+        border-radius: 0.45rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-family: 'JetBrains Mono', monospace;
+        color: var(--text-secondary, #9ca3af);
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        transition: all 0.2s;
+    }
+
+    .period-tab.active,
+    .period-tab:hover {
+        background: var(--primary, #0066FF);
+        color: #fff;
+    }
+
+    /* Plot containers */
+    .chart-plot-area { width: 100%; }
+    #main-chart-plot  { height: 420px; }
+    #volume-chart-plot { height: 130px; }
+    #rsi-chart-plot   { height: 160px; }
+    #macd-chart-plot  { height: 160px; }
+
+    /* Sub-chart section headers */
+    .sub-chart-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.625rem 1.5rem;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        background: rgba(0,0,0,0.15);
+    }
+
+    .sub-chart-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        font-family: 'JetBrains Mono', monospace;
+        color: var(--text-secondary, #9ca3af);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .rsi-badge {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 99px;
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    .rsi-badge.overbought { background: rgba(255,51,102,0.15); color: #FF3366; }
+    .rsi-badge.oversold   { background: rgba(0,230,118,0.15);  color: #00E676; }
+    .rsi-badge.neutral    { background: rgba(255,255,255,0.06); color: #9ca3af; }
+
+    /* Chart loading overlay */
+    .chart-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 420px;
+        gap: 1rem;
+        color: var(--text-tertiary, #6b7280);
+    }
+
+    .chart-loading .spinner {
+        width: 36px;
+        height: 36px;
+        border: 3px solid rgba(0,102,255,0.2);
+        border-top-color: #0066FF;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .chart-error {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 300px;
+        gap: 0.75rem;
+        color: #FF3366;
+    }
+
+    .chart-error i { font-size: 2.5rem; opacity: 0.7; }
+    .chart-error p { font-size: 0.9375rem; color: var(--text-secondary, #9ca3af); margin: 0; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .chart-card-header { padding: 0.875rem 1rem; }
+        #main-chart-plot   { height: 300px; }
+        #volume-chart-plot { height: 100px; }
+        #rsi-chart-plot    { height: 130px; }
+        #macd-chart-plot   { height: 130px; }
+        .period-tab { padding: 0.25rem 0.5rem; font-size: 0.6875rem; }
+    }
+    </style>
 </head>
 <body>
     {% include 'components/navbar.html' %}
-    
+
     <div class="analyse-container">
+
         {% if error %}
+        <!-- ── Error ── -->
         <div class="error-state">
             <div class="error-icon"><i class="fas fa-exclamation-circle"></i></div>
             <h2 class="error-title">Une erreur est survenue</h2>
@@ -32,15 +235,21 @@
                 <i class="fas fa-redo"></i><span>Réessayer</span>
             </button>
         </div>
+
         {% elif not ticker %}
+        <!-- ── Welcome ── -->
         <div class="welcome-state">
             <div class="welcome-icon"><i class="fas fa-chart-line"></i></div>
             <h1 class="welcome-title">Analyse Technique</h1>
             <p class="welcome-description">Recherchez une action pour commencer l'analyse.</p>
             <div class="welcome-search">{% include 'components/search_bar.html' %}</div>
         </div>
+
         {% else %}
+        <!-- ── Main Analysis ── -->
         <div class="analysis-content">
+
+            <!-- Breadcrumb -->
             <nav class="breadcrumb-nav">
                 <a href="/" class="breadcrumb-item"><i class="fas fa-home"></i><span>Accueil</span></a>
                 <span class="breadcrumb-separator">›</span>
@@ -48,9 +257,11 @@
                 <span class="breadcrumb-separator">›</span>
                 <span class="breadcrumb-current">{{ ticker }}</span>
             </nav>
-            
+
+            <!-- Search Bar -->
             <div class="page-search">{% include 'components/search_bar.html' %}</div>
-            
+
+            <!-- Stock Header -->
             <div class="stock-header-card">
                 <div class="stock-header-left">
                     <div class="stock-company-info">
@@ -73,9 +284,10 @@
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Indicators Grid -->
             <div class="indicators-grid">
-                <div class="indicator-card {% if analysis.rsi_signal %}{{ analysis.rsi_signal }}{% endif %}">
+                <div class="indicator-card {% if analysis and analysis.rsi_signal %}{{ analysis.rsi_signal }}{% endif %}">
                     <div class="indicator-header"><span class="indicator-label">RSI (14)</span><i class="fas fa-chart-area"></i></div>
                     <div class="indicator-value">{{ "%.2f"|format(analysis.rsi) if analysis and analysis.rsi else '--' }}</div>
                     {% if analysis and analysis.rsi %}
@@ -87,21 +299,32 @@
                 <div class="indicator-card">
                     <div class="indicator-header"><span class="indicator-label">MA 20</span><i class="fas fa-wave-square"></i></div>
                     <div class="indicator-value">{{ "%.2f"|format(analysis.ma_20) if analysis and analysis.ma_20 else '--' }}</div>
+                    {% if analysis and analysis.ma_20 and current_price %}
+                    <div class="indicator-status {% if current_price > analysis.ma_20 %}success{% else %}danger{% endif %}">
+                        {% if current_price > analysis.ma_20 %}Au-dessus{% else %}En-dessous{% endif %}
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="indicator-card">
                     <div class="indicator-header"><span class="indicator-label">MA 50</span><i class="fas fa-wave-square"></i></div>
                     <div class="indicator-value">{{ "%.2f"|format(analysis.ma_50) if analysis and analysis.ma_50 else '--' }}</div>
+                    {% if analysis and analysis.ma_50 and current_price %}
+                    <div class="indicator-status {% if current_price > analysis.ma_50 %}success{% else %}danger{% endif %}">
+                        {% if current_price > analysis.ma_50 %}Au-dessus{% else %}En-dessous{% endif %}
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="indicator-card">
                     <div class="indicator-header"><span class="indicator-label">Volume</span><i class="fas fa-chart-bar"></i></div>
                     <div class="indicator-value">{{ "{:,.0f}".format(current_volume) if current_volume else '--' }}</div>
                 </div>
             </div>
-            
+
+            <!-- Tech Info -->
             <div class="info-card">
                 <h3 class="info-card-title"><i class="fas fa-info-circle"></i>Informations techniques</h3>
                 <div class="info-grid">
-                    <div class="info-item"><span class="info-label">Volatilité</span><span class="info-value">--</span></div>
+                    <div class="info-item"><span class="info-label">Volatilité</span><span class="info-value">{{ "%.2f"|format(analysis.volatility) if analysis and analysis.volatility else '--' }}%</span></div>
                     <div class="info-item"><span class="info-label">Plus haut 52S</span><span class="info-value">${{ "%.2f"|format(stock_info.fiftyTwoWeekHigh) if stock_info and stock_info.fiftyTwoWeekHigh else '--' }}</span></div>
                     <div class="info-item"><span class="info-label">Plus bas 52S</span><span class="info-value">${{ "%.2f"|format(stock_info.fiftyTwoWeekLow) if stock_info and stock_info.fiftyTwoWeekLow else '--' }}</span></div>
                     <div class="info-item"><span class="info-label">Beta</span><span class="info-value">{{ "%.2f"|format(stock_info.beta) if stock_info and stock_info.beta else '--' }}</span></div>
@@ -109,82 +332,463 @@
                     <div class="info-item"><span class="info-label">Dividende</span><span class="info-value">{{ "%.2f"|format(stock_info.dividendYield * 100) if stock_info and stock_info.dividendYield else '0.00' }}%</span></div>
                 </div>
             </div>
-            
+
+            <!-- ════════════════════════════════════
+                 PREMIUM CHARTS DASHBOARD
+            ════════════════════════════════════ -->
             {% if chart_data %}
-            <div class="chart-container-wrapper">
-                <div class="chart-container-header">
-                    <h3 class="chart-title"><i class="fas fa-chart-candlestick"></i>Graphique des prix</h3>
+            <div class="charts-dashboard">
+
+                <!-- MAIN CHART CARD: Candlestick + overlays -->
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <h3 class="chart-card-title">
+                            <i class="fas fa-chart-candlestick"></i>
+                            {{ stock_info.name if stock_info else ticker }} — Prix &amp; Indicateurs
+                        </h3>
+
+                        <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+                            <!-- Indicator toggles -->
+                            <div class="indicator-toggles">
+                                <div class="ind-toggle active" data-ind="ma20"  onclick="toggleIndicator('ma20',  this)"><div class="dot" style="background:#FF9800"></div>MA20</div>
+                                <div class="ind-toggle active" data-ind="ma50"  onclick="toggleIndicator('ma50',  this)"><div class="dot" style="background:#2196F3"></div>MA50</div>
+                                <div class="ind-toggle"        data-ind="ma200" onclick="toggleIndicator('ma200', this)"><div class="dot" style="background:#AB47BC"></div>MA200</div>
+                                <div class="ind-toggle"        data-ind="bb"    onclick="toggleIndicator('bb',    this)"><div class="dot" style="background:#78909C"></div>BB</div>
+                                <div class="ind-toggle active" data-ind="vwap"  onclick="toggleIndicator('vwap',  this)"><div class="dot" style="background:#00E5FF"></div>Prix</div>
+                            </div>
+
+                            <!-- Period tabs -->
+                            <div class="period-tabs">
+                                <button class="period-tab" onclick="changePeriod('1mo', this)">1M</button>
+                                <button class="period-tab" onclick="changePeriod('3mo', this)">3M</button>
+                                <button class="period-tab active" onclick="changePeriod('6mo', this)">6M</button>
+                                <button class="period-tab" onclick="changePeriod('1y',  this)">1A</button>
+                                <button class="period-tab" onclick="changePeriod('2y',  this)">2A</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main candlestick + MA + BB plot -->
+                    <div class="chart-plot-area" id="main-chart-plot">
+                        <div class="chart-loading" id="main-chart-loading">
+                            <div class="spinner"></div>
+                            <span>Chargement du graphique…</span>
+                        </div>
+                    </div>
+
+                    <!-- Volume sub-panel -->
+                    <div class="sub-chart-header">
+                        <span class="sub-chart-label">Volume</span>
+                    </div>
+                    <div class="chart-plot-area" id="volume-chart-plot"></div>
+
+                    <!-- RSI sub-panel -->
+                    <div class="sub-chart-header">
+                        <span class="sub-chart-label">RSI (14)</span>
+                        <span class="rsi-badge neutral" id="rsi-badge">—</span>
+                    </div>
+                    <div class="chart-plot-area" id="rsi-chart-plot"></div>
+
+                    <!-- MACD sub-panel -->
+                    <div class="sub-chart-header">
+                        <span class="sub-chart-label">MACD (12, 26, 9)</span>
+                    </div>
+                    <div class="chart-plot-area" id="macd-chart-plot"></div>
                 </div>
-                <div class="chart-container-body" id="price-chart" style="width:100%; height:500px;"></div>
-            </div>
-            
+
+            </div><!-- /charts-dashboard -->
+
+            <!-- ══ CHART JAVASCRIPT ══ -->
             <script>
-            // CHART RENDERING - DIRECT INLINE
-            (function() {
-                try {
-                    console.log('Rendering chart...');
-                    var rawData = {{ chart_data|safe }};
-                    console.log('Data loaded:', rawData);
-                    
-                    if (!rawData || !rawData.dates || rawData.dates.length === 0) {
-                        document.getElementById('price-chart').innerHTML = '<div style="padding:3rem;text-align:center;color:#ff3366;">Aucune donnée disponible</div>';
-                        return;
+            (function () {
+                'use strict';
+
+                /* ── Shared Plotly config ──────────────────── */
+                var DARK = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor:  'rgba(0,0,0,0)',
+                    font:  { color: '#9ca3af', family: 'Inter, sans-serif', size: 11 },
+                    margin: { l: 8, r: 68, t: 8, b: 8 },
+                    xaxis: {
+                        gridcolor: 'rgba(255,255,255,0.05)',
+                        linecolor: 'rgba(255,255,255,0.06)',
+                        tickcolor: 'rgba(255,255,255,0.15)',
+                        showgrid: true,
+                        rangeslider: { visible: false },
+                        type: 'date'
+                    },
+                    yaxis: {
+                        gridcolor: 'rgba(255,255,255,0.05)',
+                        linecolor: 'rgba(255,255,255,0.06)',
+                        tickcolor: 'rgba(255,255,255,0.15)',
+                        showgrid: true,
+                        side: 'right',
+                        tickformat: '$.2f'
+                    },
+                    hovermode: 'x unified',
+                    hoverlabel: {
+                        bgcolor: '#1a2235',
+                        bordercolor: 'rgba(255,255,255,0.1)',
+                        font: { color: '#e8eaed', family: 'JetBrains Mono, monospace', size: 12 }
+                    },
+                    showlegend: false
+                };
+
+                var PLOTLY_CFG = {
+                    responsive: true,
+                    displayModeBar: true,
+                    displaylogo: false,
+                    modeBarButtonsToRemove: ['lasso2d', 'select2d', 'autoScale2d'],
+                    toImageButtonOptions: { format: 'png', scale: 2 }
+                };
+
+                /* ── Raw data injected by Flask ────────────── */
+                var D = null;
+                try { D = {{ chart_data|safe }}; } catch(e) {}
+
+                if (!D || !D.dates || D.dates.length === 0) {
+                    document.getElementById('main-chart-plot').innerHTML =
+                        '<div class="chart-error"><i class="fas fa-exclamation-triangle"></i><p>Aucune donnée disponible</p></div>';
+                    return;
+                }
+
+                /* ── State ─────────────────────────────────── */
+                var visibleInds = { ma20: true, ma50: true, ma200: false, bb: false, vwap: true };
+                var currentSlice = null; // null = all data
+
+                /* ── Helpers ───────────────────────────────── */
+                function slicedData() {
+                    if (!currentSlice) return D;
+                    var now = new Date(D.dates[D.dates.length - 1]);
+                    var from = new Date(now);
+                    if      (currentSlice === '1mo') from.setMonth(now.getMonth() - 1);
+                    else if (currentSlice === '3mo') from.setMonth(now.getMonth() - 3);
+                    else if (currentSlice === '6mo') from.setMonth(now.getMonth() - 6);
+                    else if (currentSlice === '1y')  from.setFullYear(now.getFullYear() - 1);
+                    else if (currentSlice === '2y')  from.setFullYear(now.getFullYear() - 2);
+                    var fromStr = from.toISOString().slice(0, 10);
+                    var idx = D.dates.findIndex(function(d) { return d >= fromStr; });
+                    if (idx < 0) return D;
+                    var slice = {};
+                    for (var k in D) {
+                        if (Array.isArray(D[k])) slice[k] = D[k].slice(idx);
+                        else slice[k] = D[k];
                     }
-                    
+                    return slice;
+                }
+
+                function safeArr(arr) {
+                    return arr && arr.length ? arr : null;
+                }
+
+                /* ── 1. MAIN CHART (candlestick + MAs + BB) ── */
+                function renderMain() {
+                    var s = slicedData();
+                    var traces = [];
+
+                    // Candlestick
+                    traces.push({
+                        type: 'candlestick',
+                        x: s.dates,
+                        open:  s.open,
+                        high:  s.high,
+                        low:   s.low,
+                        close: s.close,
+                        name: '{{ ticker }}',
+                        increasing: {
+                            line: { color: '#00C853', width: 1 },
+                            fillcolor: 'rgba(0,200,83,0.7)'
+                        },
+                        decreasing: {
+                            line: { color: '#FF1744', width: 1 },
+                            fillcolor: 'rgba(255,23,68,0.7)'
+                        },
+                        hoverinfo: 'x+y',
+                        whiskerwidth: 1
+                    });
+
+                    // Bollinger Bands (fill between)
+                    if (visibleInds.bb && safeArr(s.bb_upper) && safeArr(s.bb_lower)) {
+                        // Upper band
+                        traces.push({
+                            x: s.dates, y: s.bb_upper,
+                            type: 'scatter', mode: 'lines',
+                            name: 'BB Upper', hovertemplate: 'BB↑ $%{y:.2f}<extra></extra>',
+                            line: { color: 'rgba(120,144,156,0.5)', width: 1, dash: 'dot' },
+                            showlegend: false
+                        });
+                        // Lower band + fill to upper
+                        traces.push({
+                            x: s.dates, y: s.bb_lower,
+                            type: 'scatter', mode: 'lines',
+                            fill: 'tonexty',
+                            fillcolor: 'rgba(120,144,156,0.07)',
+                            name: 'BB Lower', hovertemplate: 'BB↓ $%{y:.2f}<extra></extra>',
+                            line: { color: 'rgba(120,144,156,0.5)', width: 1, dash: 'dot' },
+                            showlegend: false
+                        });
+                    }
+
+                    // MA 20
+                    if (visibleInds.ma20 && safeArr(s.ma20)) {
+                        traces.push({
+                            x: s.dates, y: s.ma20,
+                            type: 'scatter', mode: 'lines',
+                            name: 'MA20', hovertemplate: 'MA20 $%{y:.2f}<extra></extra>',
+                            line: { color: '#FF9800', width: 1.5 }
+                        });
+                    }
+
+                    // MA 50
+                    if (visibleInds.ma50 && safeArr(s.ma50)) {
+                        traces.push({
+                            x: s.dates, y: s.ma50,
+                            type: 'scatter', mode: 'lines',
+                            name: 'MA50', hovertemplate: 'MA50 $%{y:.2f}<extra></extra>',
+                            line: { color: '#2196F3', width: 1.5 }
+                        });
+                    }
+
+                    // MA 200
+                    if (visibleInds.ma200 && safeArr(s.ma200)) {
+                        traces.push({
+                            x: s.dates, y: s.ma200,
+                            type: 'scatter', mode: 'lines',
+                            name: 'MA200', hovertemplate: 'MA200 $%{y:.2f}<extra></extra>',
+                            line: { color: '#AB47BC', width: 1.5 }
+                        });
+                    }
+
+                    // Ligne continue du prix de clôture
+                    if (visibleInds.vwap && safeArr(s.close)) {
+                        traces.push({
+                            x: s.dates, y: s.close,
+                            type: 'scatter', mode: 'lines',
+                            name: 'Prix',
+                            hovertemplate: 'Prix $%{y:.2f}<extra></extra>',
+                            opacity: 0.6,
+                            line: {
+                                color: '#E040FB',
+                                width: 2
+                            }
+                        });
+                    }
+
+                    var layout = Object.assign({}, DARK, {
+                        margin: { l: 8, r: 68, t: 12, b: 6 },
+                        yaxis: Object.assign({}, DARK.yaxis, { autorange: true }),
+                        xaxis: Object.assign({}, DARK.xaxis, {
+                            showticklabels: false  // date labels shown on volume chart below
+                        })
+                    });
+
+                    document.getElementById('main-chart-loading').style.display = 'none';
+                    Plotly.react('main-chart-plot', traces, layout, PLOTLY_CFG);
+                }
+
+                /* ── 2. VOLUME CHART ───────────────────────── */
+                function renderVolume() {
+                    var s = slicedData();
+                    var colors = s.close.map(function(c, i) {
+                        return c >= (s.open[i] || c) ? 'rgba(0,200,83,0.55)' : 'rgba(255,23,68,0.55)';
+                    });
+
+                    var traces = [{
+                        x: s.dates, y: s.volume,
+                        type: 'bar',
+                        name: 'Volume',
+                        marker: { color: colors },
+                        hovertemplate: 'Vol %{y:,.0f}<extra></extra>'
+                    }];
+
+                    var layout = Object.assign({}, DARK, {
+                        margin: { l: 8, r: 68, t: 4, b: 4 },
+                        yaxis: Object.assign({}, DARK.yaxis, {
+                            tickformat: '.2s',
+                            showgrid: false
+                        })
+                    });
+
+                    Plotly.react('volume-chart-plot', traces, layout, PLOTLY_CFG);
+                }
+
+                /* ── 3. RSI CHART ──────────────────────────── */
+                function renderRSI() {
+                    var s = slicedData();
+                    if (!safeArr(s.rsi)) return;
+
+                    // Colored line: red > 70, green < 30, gray in between
+                    var lastRSI = s.rsi[s.rsi.length - 1];
+                    var rsiColor = lastRSI > 70 ? '#FF3366' : lastRSI < 30 ? '#00E676' : '#FFEB3B';
+
+                    // Update badge
+                    var badge = document.getElementById('rsi-badge');
+                    if (badge) {
+                        badge.textContent = lastRSI ? lastRSI.toFixed(1) : '—';
+                        badge.className = 'rsi-badge ' +
+                            (lastRSI > 70 ? 'overbought' : lastRSI < 30 ? 'oversold' : 'neutral');
+                    }
+
                     var traces = [
+                        // Overbought fill zone
                         {
-                            x: rawData.dates,
-                            close: rawData.close,
-                            high: rawData.high,
-                            low: rawData.low,
-                            open: rawData.open,
-                            type: 'candlestick',
-                            name: '{{ ticker }}',
-                            increasing: {line: {color: '#00E676'}},
-                            decreasing: {line: {color: '#FF3366'}}
+                            x: s.dates,
+                            y: s.dates.map(function() { return 70; }),
+                            type: 'scatter', mode: 'none',
+                            fill: 'tozeroy', fillcolor: 'rgba(255,51,102,0)',
+                            showlegend: false, hoverinfo: 'none'
                         },
+                        // RSI line
                         {
-                            x: rawData.dates,
-                            y: rawData.ma20,
-                            type: 'scatter',
-                            mode: 'lines',
-                            name: 'MA 20',
-                            line: {color: '#FF9800', width: 2}
-                        },
-                        {
-                            x: rawData.dates,
-                            y: rawData.ma50,
-                            type: 'scatter',
-                            mode: 'lines',
-                            name: 'MA 50',
-                            line: {color: '#2196F3', width: 2}
+                            x: s.dates, y: s.rsi,
+                            type: 'scatter', mode: 'lines',
+                            name: 'RSI',
+                            line: { color: rsiColor, width: 2 },
+                            hovertemplate: 'RSI %{y:.1f}<extra></extra>'
                         }
                     ];
-                    
-                    var layout = {
-                        paper_bgcolor: 'rgba(0,0,0,0)',
-                        plot_bgcolor: 'rgba(0,0,0,0)',
-                        font: {color: '#E8EAED', family: 'Inter'},
-                        xaxis: {gridcolor: '#2A2F3A', showgrid: true, rangeslider: {visible: false}},
-                        yaxis: {gridcolor: '#2A2F3A', showgrid: true, side: 'right'},
-                        margin: {l: 50, r: 50, t: 20, b: 40},
-                        hovermode: 'x unified',
-                        showlegend: true,
-                        legend: {orientation: 'h', y: -0.15}
-                    };
-                    
-                    var config = {responsive: true, displayModeBar: true, displaylogo: false};
-                    
-                    Plotly.newPlot('price-chart', traces, layout, config);
-                    console.log('✓ Chart rendered');
-                } catch (e) {
-                    console.error('Chart error:', e);
-                    document.getElementById('price-chart').innerHTML = '<div style="padding:3rem;text-align:center;color:#ff3366;">Erreur: ' + e.message + '</div>';
+
+                    var layout = Object.assign({}, DARK, {
+                        margin: { l: 8, r: 68, t: 4, b: 4 },
+                        yaxis: Object.assign({}, DARK.yaxis, {
+                            range: [0, 100],
+                            tickvals: [30, 50, 70],
+                            tickformat: 'd',
+                            showgrid: true,
+                            gridcolor: 'rgba(255,255,255,0.04)'
+                        }),
+                        shapes: [
+                            // Overbought zone
+                            {
+                                type: 'rect', xref: 'paper', yref: 'y',
+                                x0: 0, x1: 1, y0: 70, y1: 100,
+                                fillcolor: 'rgba(255,51,102,0.06)',
+                                line: { width: 0 }
+                            },
+                            // Oversold zone
+                            {
+                                type: 'rect', xref: 'paper', yref: 'y',
+                                x0: 0, x1: 1, y0: 0, y1: 30,
+                                fillcolor: 'rgba(0,230,118,0.06)',
+                                line: { width: 0 }
+                            },
+                            // 70 line
+                            {
+                                type: 'line', xref: 'paper', yref: 'y',
+                                x0: 0, x1: 1, y0: 70, y1: 70,
+                                line: { color: 'rgba(255,51,102,0.4)', width: 1, dash: 'dot' }
+                            },
+                            // 30 line
+                            {
+                                type: 'line', xref: 'paper', yref: 'y',
+                                x0: 0, x1: 1, y0: 30, y1: 30,
+                                line: { color: 'rgba(0,230,118,0.4)', width: 1, dash: 'dot' }
+                            },
+                            // 50 line
+                            {
+                                type: 'line', xref: 'paper', yref: 'y',
+                                x0: 0, x1: 1, y0: 50, y1: 50,
+                                line: { color: 'rgba(255,255,255,0.1)', width: 1, dash: 'dot' }
+                            }
+                        ]
+                    });
+
+                    Plotly.react('rsi-chart-plot', traces, layout, PLOTLY_CFG);
                 }
+
+                /* ── 4. MACD CHART ─────────────────────────── */
+                function renderMACD() {
+                    var s = slicedData();
+                    if (!safeArr(s.macd)) return;
+
+                    var histColors = (s.macd_hist || []).map(function(v) {
+                        return v >= 0 ? 'rgba(0,200,83,0.65)' : 'rgba(255,23,68,0.65)';
+                    });
+
+                    var traces = [
+                        // Histogram
+                        {
+                            x: s.dates, y: s.macd_hist,
+                            type: 'bar', name: 'Hist.',
+                            marker: { color: histColors },
+                            hovertemplate: 'Hist %{y:.4f}<extra></extra>'
+                        },
+                        // MACD line
+                        {
+                            x: s.dates, y: s.macd,
+                            type: 'scatter', mode: 'lines',
+                            name: 'MACD',
+                            line: { color: '#00BCD4', width: 2 },
+                            hovertemplate: 'MACD %{y:.4f}<extra></extra>'
+                        },
+                        // Signal line
+                        {
+                            x: s.dates, y: s.macd_signal,
+                            type: 'scatter', mode: 'lines',
+                            name: 'Signal',
+                            line: { color: '#E91E63', width: 1.5 },
+                            hovertemplate: 'Sig %{y:.4f}<extra></extra>'
+                        }
+                    ];
+
+                    var layout = Object.assign({}, DARK, {
+                        margin: { l: 8, r: 68, t: 4, b: 6 },
+                        yaxis: Object.assign({}, DARK.yaxis, {
+                            tickformat: '.3f',
+                            showgrid: true,
+                            zeroline: true,
+                            zerolinecolor: 'rgba(255,255,255,0.12)',
+                            zerolinewidth: 1
+                        }),
+                        barmode: 'overlay'
+                    });
+
+                    Plotly.react('macd-chart-plot', traces, layout, PLOTLY_CFG);
+                }
+
+                /* ── Render all ────────────────────────────── */
+                function renderAll() {
+                    renderMain();
+                    renderVolume();
+                    renderRSI();
+                    renderMACD();
+                }
+
+                /* ── Controls ──────────────────────────────── */
+                window.toggleIndicator = function(ind, el) {
+                    visibleInds[ind] = !visibleInds[ind];
+                    el.classList.toggle('active', visibleInds[ind]);
+                    renderMain();
+                };
+
+                window.changePeriod = function(period, el) {
+                    currentSlice = period;
+                    document.querySelectorAll('.period-tab').forEach(function(t) {
+                        t.classList.remove('active');
+                    });
+                    el.classList.add('active');
+                    renderAll();
+                };
+
+                // Initial render
+                renderAll();
+
+                // Re-render on resize
+                var resizeTimer;
+                window.addEventListener('resize', function() {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(function() {
+                        ['main-chart-plot','volume-chart-plot','rsi-chart-plot','macd-chart-plot'].forEach(function(id) {
+                            Plotly.Plots.resize(document.getElementById(id));
+                        });
+                    }, 150);
+                });
+
             })();
             </script>
             {% endif %}
-            
+
+            <!-- Historical Data Table -->
             {% if historical_data and historical_data|length > 0 %}
             <div class="table-card">
                 <div class="table-card-header">
@@ -212,12 +816,13 @@
                 </div>
             </div>
             {% endif %}
-        </div>
+
+        </div><!-- /analysis-content -->
         {% endif %}
-    </div>
-    
+    </div><!-- /analyse-container -->
+
     {% include 'components/footer.html' %}
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
