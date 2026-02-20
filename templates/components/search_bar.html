@@ -1,8 +1,8 @@
 <!-- templates/components/search_bar.html -->
-<div class="search-bar-component" id="search-bar-root">
+<div class="search-bar-component">
 
-    <!-- ── Input row — no button ── -->
-    <div id="search-wrapper" onclick="document.getElementById('search-input').focus()" style="
+    <!-- Input wrapper -->
+    <div class="sb-wrapper" onclick="this.querySelector('.sb-input').focus()" style="
         display: flex;
         flex-direction: row;
         flex-wrap: nowrap;
@@ -14,8 +14,8 @@
         transition: border-color 0.3s, box-shadow 0.3s;
         cursor: text;
     ">
-        <!-- Loupe — hides when typing -->
-        <span id="sb-icon" style="
+        <!-- Icon -->
+        <span class="sb-icon" style="
             flex-shrink: 0;
             padding: 0 0.875rem 0 1.25rem;
             color: #6b7280;
@@ -26,10 +26,10 @@
             overflow: hidden;
         "><i class="fas fa-search"></i></span>
 
-        <!-- Input takes full width -->
+        <!-- Input -->
         <input
             type="text"
-            id="search-input"
+            class="sb-input"
             placeholder="Rechercher une action (ex: AAPL, MSFT, TTE.PA)..."
             autocomplete="off"
             style="
@@ -49,21 +49,7 @@
         >
     </div>
 
-    <!-- ── Dropdown ── -->
-    <div id="sb-drop" style="
-        display: none;
-        position: fixed;
-        z-index: 99999;
-        background: rgb(10, 17, 32);
-        border: 1px solid rgba(0,102,255,0.5);
-        border-radius: 0.875rem;
-        overflow: hidden;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.8);
-        max-height: 520px;
-        overflow-y: auto;
-    "></div>
-
-    <!-- ── Quick actions ── -->
+    <!-- Quick actions -->
     <div class="search-quick-actions">
         <span class="quick-label">Actions populaires:</span>
         <button class="quick-stock-btn" onclick="window.location.href='/analyse?ticker=AAPL'"><i class="fab fa-apple"></i> AAPL</button>
@@ -75,14 +61,44 @@
 </div>
 
 <script>
+/* Dropdown is created in body, positioned dynamically */
 (function () {
-    var input   = document.getElementById('search-input');
-    var drop    = document.getElementById('sb-drop');
-    var icon    = document.getElementById('sb-icon');
-    var wrapper = document.getElementById('search-wrapper');
-    if (!input || !drop) return;
+    var scripts = document.querySelectorAll('script');
+    var thisScript = scripts[scripts.length - 1];
+    var component = thisScript.previousElementSibling;
 
-    /* Focus highlight */
+    var wrapper = component.querySelector('.sb-wrapper');
+    var input   = component.querySelector('.sb-input');
+    var icon    = component.querySelector('.sb-icon');
+
+    if (!input || !wrapper) return;
+
+    /* Create dropdown portaled to body */
+    var drop = document.createElement('div');
+    drop.className = 'sb-dropdown-portal';
+    drop.style.cssText = 'display:none;position:fixed;z-index:1;background:rgb(10,17,32);'
+                       + 'border:1px solid rgba(0,102,255,0.5);border-radius:0.875rem;overflow:hidden;'
+                       + 'box-shadow:0 20px 60px rgba(0,0,0,1);max-height:520px;overflow-y:auto;';
+    document.body.appendChild(drop);
+
+    /* Position dropdown using viewport coordinates (fixed) */
+    function positionDrop() {
+        var rect = wrapper.getBoundingClientRect();
+        drop.style.top   = (rect.bottom + 8) + 'px';  /* viewport coords, no scrollY */
+        drop.style.left  = rect.left + 'px';
+        drop.style.width = rect.width + 'px';
+    }
+    
+    /* Continuous repositioning while open */
+    var rafId = null;
+    function keepPositioned() {
+        if (drop.style.display !== 'none') {
+            positionDrop();
+            rafId = requestAnimationFrame(keepPositioned);
+        }
+    }
+
+    /* Focus styling */
     input.addEventListener('focus', function () {
         wrapper.style.borderColor = '#0066FF';
         wrapper.style.boxShadow   = '0 0 0 4px rgba(0,102,255,0.12)';
@@ -104,22 +120,17 @@
 
     /* Typing → search */
     input.addEventListener('input', function () {
-        /* Toggle icon */
-        if (input.value.length > 0) {
-            icon.style.opacity  = '0';
-            icon.style.maxWidth = '0';
-            icon.style.padding  = '0';
-        } else {
-            icon.style.opacity  = '1';
-            icon.style.maxWidth = '52px';
-            icon.style.padding  = '';
-        }
+        /* Toggle icon visibility */
+        var hasText = input.value.length > 0;
+        icon.style.opacity  = hasText ? '0' : '1';
+        icon.style.maxWidth = hasText ? '0' : '52px';
+        icon.style.padding  = hasText ? '0' : '';
 
         var q = input.value.trim();
         if (q.length < 2) { closeDrop(); return; }
 
-        clearTimeout(input._t);
-        input._t = setTimeout(function () {
+        clearTimeout(input._searchTimer);
+        input._searchTimer = setTimeout(function () {
             fetch('/api/search?q=' + encodeURIComponent(q))
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
@@ -130,16 +141,10 @@
         }, 260);
     });
 
-    function positionDrop() {
-        var rect = wrapper.getBoundingClientRect();
-        drop.style.top    = (rect.bottom + 8) + 'px';
-        drop.style.left   = rect.left + 'px';
-        drop.style.width  = rect.width + 'px';
-    }
-
     function renderDrop(items) {
-        positionDrop();
-        var html = '<div style="padding:0.4rem 1rem;font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#4b5563;border-bottom:1px solid rgba(255,255,255,0.05);">'
+        var html = '<div style="padding:0.5rem 1.125rem;font-size:0.65rem;font-weight:700;'
+                 + 'letter-spacing:0.1em;text-transform:uppercase;color:#475569;'
+                 + 'border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);">'
                  + items.length + ' résultat' + (items.length > 1 ? 's' : '') + '</div>';
 
         items.slice(0, 10).forEach(function (item) {
@@ -148,60 +153,86 @@
             var mkt  = String(item.market || '');
             if (!sym) return;
 
-            var initials   = sym.replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase() || sym.slice(0, 2);
-            var isEU       = mkt.toUpperCase() === 'EU';
-            var badgeStyle = isEU
-                ? 'background:rgba(0,217,255,0.12);color:#00d9ff;border:1px solid rgba(0,217,255,0.3);'
-                : 'background:rgba(0,102,255,0.14);color:#4d8ff5;border:1px solid rgba(0,102,255,0.3);';
+            var initials = sym.replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase() || sym.slice(0, 2);
+            var isEU     = mkt.toUpperCase() === 'EU';
+            var badgeCol = isEU ? '#00d9ff' : '#4d8ff5';
+            var badgeBg  = isEU ? 'rgba(0,217,255,0.12)' : 'rgba(0,102,255,0.14)';
+            var badgeBdr = isEU ? 'rgba(0,217,255,0.3)'  : 'rgba(0,102,255,0.3)';
 
             html += '<div onclick="window.location.href=\'/analyse?ticker=' + encodeURIComponent(sym) + '\'"'
-                  + ' style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;"'
+                  + ' style="display:flex;align-items:center;gap:1rem;padding:1rem 1.125rem;'
+                  + 'border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;'
+                  + 'transition:background 0.12s;"'
                   + ' onmouseover="this.style.background=\'rgba(0,102,255,0.1)\'"'
                   + ' onmouseout="this.style.background=\'transparent\'">'
 
-                  + '<div style="flex-shrink:0;width:44px;height:44px;border-radius:10px;background:rgba(0,102,255,0.14);border:1px solid rgba(0,102,255,0.22);display:flex;align-items:center;justify-content:center;font-family:JetBrains Mono,monospace;font-size:0.8125rem;font-weight:700;color:#4d8ff5;">'
+                  /* Icon */
+                  + '<div style="flex-shrink:0;width:42px;height:42px;border-radius:9px;'
+                  + 'background:rgba(0,102,255,0.15);border:1px solid rgba(0,102,255,0.25);'
+                  + 'display:flex;align-items:center;justify-content:center;'
+                  + 'font-family:JetBrains Mono,monospace;font-size:0.8125rem;font-weight:700;color:#4d8ff5;">'
                   + initials + '</div>'
 
+                  /* Symbol + Name */
                   + '<div style="flex:1;min-width:0;">'
-                  + '<div style="font-family:JetBrains Mono,monospace;font-size:1rem;font-weight:700;color:#e8eaed;line-height:1.2;">' + sym + '</div>'
-                  + '<div style="font-size:0.875rem;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + name + '</div>'
+                  + '<div style="font-family:JetBrains Mono,monospace;font-size:1rem;font-weight:700;'
+                  + 'color:#f1f5f9;line-height:1.2;">' + sym + '</div>'
+                  + '<div style="font-size:0.875rem;color:#64748b;margin-top:2px;'
+                  + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + name + '</div>'
                   + '</div>'
 
-                  + '<span style="flex-shrink:0;font-family:JetBrains Mono,monospace;font-size:0.6875rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:5px 12px;border-radius:6px;font-size:0.75rem;' + badgeStyle + '">' + mkt + '</span>'
-                  + '<i class="fas fa-chevron-right" style="color:rgba(255,255,255,0.2);font-size:0.75rem;"></i>'
+                  /* Badge */
+                  + '<span style="flex-shrink:0;font-family:JetBrains Mono,monospace;font-size:0.75rem;'
+                  + 'font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:4px 11px;'
+                  + 'border-radius:6px;background:' + badgeBg + ';color:' + badgeCol + ';'
+                  + 'border:1px solid ' + badgeBdr + ';">' + mkt + '</span>'
+
+                  /* Arrow */
+                  + '<i class="fas fa-chevron-right" style="flex-shrink:0;color:rgba(255,255,255,0.2);'
+                  + 'font-size:0.75rem;"></i>'
                   + '</div>';
         });
 
         drop.innerHTML = html;
         drop.style.display = 'block';
+        if (!rafId) keepPositioned();
     }
 
     function emptyDrop(q) {
-        positionDrop();
-        drop.innerHTML = '<div style="padding:1.5rem;text-align:center;color:#6b7280;font-size:0.875rem;">'
-                       + '<i class="fas fa-search" style="margin-right:0.5rem;opacity:0.3"></i>'
-                       + 'Aucun résultat pour <strong style="color:#9ca3af;">"' + q + '"</strong></div>';
+        drop.innerHTML = '<div style="padding:1.75rem;text-align:center;color:#64748b;font-size:0.9375rem;">'
+                       + '<i class="fas fa-search" style="margin-right:0.5rem;opacity:0.3;"></i>'
+                       + 'Aucun résultat pour <strong style="color:#94a3b8;">"' + q + '"</strong></div>';
         drop.style.display = 'block';
+        keepPositioned();
     }
 
     function closeDrop() {
         drop.style.display = 'none';
+        if (rafId) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+        }
     }
 
-    window.addEventListener('scroll', function() {
-        if (drop.style.display !== 'none') positionDrop();
-    }, true);
-    window.addEventListener('resize', function() {
-        if (drop.style.display !== 'none') positionDrop();
-    });
+    /* No need for scroll listeners - RAF loop handles it */
 
+    /* Close on outside click */
     document.addEventListener('click', function (e) {
-        var root = document.getElementById('search-bar-root');
-        if (root && !root.contains(e.target)) closeDrop();
+        if (!component.contains(e.target) && !drop.contains(e.target)) {
+            closeDrop();
+        }
     });
 
+    /* Escape key */
     input.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') closeDrop();
+    });
+
+    /* Cleanup on navigation away */
+    window.addEventListener('beforeunload', function () {
+        if (drop && drop.parentNode) {
+            drop.parentNode.removeChild(drop);
+        }
     });
 })();
 </script>
