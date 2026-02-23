@@ -415,26 +415,49 @@ def portefeuille():
 @app.route('/api/search')
 @cache.cached(timeout=300, query_string=True)
 def search_tickers():
-    """Fast search API"""
+    """Enhanced search API - searches both local and Yahoo Finance"""
     query = request.args.get('q', '').lower()
     
     if len(query) < 2:
         return jsonify({'suggestions': []})
     
     results = []
+    seen = set()
+    
+    # First: search local portfolio
     for market, stocks in PORTEFEUILLES.items():
         for ticker, name in stocks.items():
             if query in ticker.lower() or query in name.lower():
-                results.append({
-                    'symbol': ticker,
-                    'ticker': ticker,
-                    'name': name,
-                    'market': market
-                })
-                if len(results) >= 10:
-                    break
+                if ticker not in seen:
+                    results.append({
+                        'symbol': ticker,
+                        'ticker': ticker,
+                        'name': name,
+                        'market': market
+                    })
+                    seen.add(ticker)
+                    if len(results) >= 10:
+                        break
         if len(results) >= 10:
             break
+    
+    # Second: if less than 10 results, try Yahoo Finance search
+    if len(results) < 10:
+        try:
+            import yfinance as yf
+            search_results = yf.Ticker(query.upper()).info
+            if search_results and 'symbol' in search_results:
+                ticker = search_results['symbol']
+                if ticker not in seen:
+                    market = 'EU' if any(x in ticker for x in ['.PA', '.DE', '.AS', '.L']) else 'US'
+                    results.append({
+                        'symbol': ticker,
+                        'ticker': ticker,
+                        'name': search_results.get('longName', search_results.get('shortName', ticker)),
+                        'market': market
+                    })
+        except:
+            pass
     
     return jsonify({'suggestions': results})
 

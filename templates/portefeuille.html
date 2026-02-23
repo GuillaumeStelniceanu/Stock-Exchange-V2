@@ -4,159 +4,432 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portefeuille - Technical Analyst</title>
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/portefeuille.css') }}">
+    <style>
+    .portfolio-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+    }
+    .portfolio-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .portfolio-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text-primary, #e8eaed);
+    }
+    .add-stock-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: var(--primary, #0066FF);
+        color: #fff;
+        border: none;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 0.9375rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .add-stock-btn:hover {
+        background: #0052cc;
+        transform: translateY(-2px);
+    }
+    /* Tabs */
+    .portfolio-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .tab-btn {
+        padding: 0.75rem 1.5rem;
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: var(--text-secondary, #9ca3af);
+        font-weight: 600;
+        font-size: 0.9375rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .tab-btn:hover { color: var(--text-primary, #e8eaed); }
+    .tab-btn.active {
+        color: var(--primary, #0066FF);
+        border-bottom-color: var(--primary, #0066FF);
+    }
+    .stocks-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.25rem;
+    }
+    .stock-card {
+        background: var(--bg-card, #131920);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        position: relative;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .stock-card:hover {
+        border-color: rgba(0,102,255,0.3);
+        transform: translateY(-2px);
+    }
+    .delete-btn {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,51,102,0.1);
+        border: 1px solid rgba(255,51,102,0.2);
+        border-radius: 8px;
+        color: #FF3366;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.875rem;
+        opacity: 0;
+    }
+    .stock-card:hover .delete-btn { opacity: 1; }
+    .delete-btn:hover {
+        background: rgba(255,51,102,0.25);
+        transform: scale(1.1);
+    }
+    .stock-ticker {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--primary, #4d8ff5);
+        margin-bottom: 0.25rem;
+    }
+    .stock-name {
+        font-size: 0.875rem;
+        color: var(--text-secondary, #9ca3af);
+        margin-bottom: 1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .stock-price {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-primary, #e8eaed);
+        margin-bottom: 0.5rem;
+    }
+    .stock-change {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.875rem;
+        font-weight: 700;
+    }
+    .stock-change.positive {
+        background: rgba(0,230,118,0.15);
+        color: #00E676;
+    }
+    .stock-change.negative {
+        background: rgba(255,51,102,0.15);
+        color: #FF3366;
+    }
+    /* Modal */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.8);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-content {
+        background: var(--bg-card, #131920);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 1.25rem;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+    }
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary, #e8eaed);
+        margin-bottom: 1.5rem;
+    }
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-secondary, #9ca3af);
+        margin-bottom: 0.5rem;
+    }
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 0.75rem;
+        color: var(--text-primary, #e8eaed);
+        font-size: 0.9375rem;
+        font-family: 'JetBrains Mono', monospace;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .form-input:focus {
+        border-color: var(--primary, #0066FF);
+    }
+    .modal-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+        margin-top: 1.5rem;
+    }
+    .modal-btn {
+        padding: 0.625rem 1.5rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 0.9375rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .modal-btn.primary {
+        background: var(--primary, #0066FF);
+        color: #fff;
+    }
+    .modal-btn.primary:hover { background: #0052cc; }
+    .modal-btn.secondary {
+        background: rgba(255,255,255,0.06);
+        color: var(--text-primary, #e8eaed);
+    }
+    .modal-btn.secondary:hover { background: rgba(255,255,255,0.1); }
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-secondary, #9ca3af);
+        grid-column: 1 / -1;
+    }
+    .empty-state i {
+        font-size: 4rem;
+        color: rgba(255,255,255,0.1);
+        margin-bottom: 1rem;
+    }
+    </style>
 </head>
 <body>
     {% include 'components/navbar.html' %}
-    
+
     <div class="portfolio-container">
         <div class="portfolio-header">
-            <div>
-                <h1 class="portfolio-title">Mon Portefeuille</h1>
-                <p class="portfolio-subtitle">Suivez vos actions favorites</p>
-            </div>
-            <div class="portfolio-actions">
-                <select class="market-select" onchange="filterByMarket(this.value)">
-                    <option value="all">Tous les marchés</option>
-                    <option value="US">États-Unis</option>
-                    <option value="EU">Europe</option>
-                </select>
-                <button class="action-btn" onclick="location.reload()">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-                <button class="action-btn primary" onclick="window.location.href='/analyse'">
-                    <i class="fas fa-plus"></i>
-                    <span>Ajouter</span>
-                </button>
-            </div>
-        </div>
-        
-        <div class="summary-cards">
-            <div class="summary-card">
-                <div class="summary-icon success">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="summary-info">
-                    <div class="summary-label">Actions suivies</div>
-                    <div class="summary-value">{{ portfolio|length if portfolio else '0' }}</div>
-                </div>
-            </div>
-            
-            <div class="summary-card">
-                <div class="summary-icon primary">
-                    <i class="fas fa-arrow-up"></i>
-                </div>
-                <div class="summary-info">
-                    <div class="summary-label">En hausse</div>
-                    <div class="summary-value">{{ positive_count if positive_count else '0' }}</div>
-                </div>
-            </div>
-            
-            <div class="summary-card">
-                <div class="summary-icon danger">
-                    <i class="fas fa-arrow-down"></i>
-                </div>
-                <div class="summary-info">
-                    <div class="summary-label">En baisse</div>
-                    <div class="summary-value">{{ negative_count if negative_count else '0' }}</div>
-                </div>
-            </div>
-        </div>
-        
-        {% if portfolio and portfolio|length > 0 %}
-        <div class="portfolio-table-card">
-            <div class="table-responsive">
-                <table class="portfolio-table">
-                    <thead>
-                        <tr>
-                            <th>Action</th>
-                            <th>Prix</th>
-                            <th>Variation</th>
-                            <th>% Change</th>
-                            <th>Volume</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for stock in portfolio %}
-                        <tr>
-                            <td class="stock-cell">
-                                <span class="table-ticker">{{ stock.ticker }}</span>
-                                <span class="table-name">{{ stock.name }}</span>
-                            </td>
-                            <td class="price-cell">${{ "%.2f"|format(stock.price) }}</td>
-                            <td class="change-cell {% if stock.change >= 0 %}positive{% else %}negative{% endif %}">
-                                ${{ "%.2f"|format(stock.change|abs) }}
-                            </td>
-                            <td class="percent-cell {% if stock.change_percent >= 0 %}positive{% else %}negative{% endif %}">
-                                {{ "%.2f"|format(stock.change_percent|abs) }}%
-                            </td>
-                            <td class="volume-cell">{{ "{:,.0f}".format(stock.volume) }}</td>
-                            <td class="actions-cell">
-                                <button class="table-action-btn" onclick="window.location.href='/analyse?ticker={{ stock.ticker }}'" title="Analyser">
-                                    <i class="fas fa-chart-line"></i>
-                                </button>
-                                <button class="table-action-btn danger" onclick="removeStock('{{ stock.ticker }}')" title="Retirer">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        {% else %}
-        <div class="empty-state">
-            <div class="empty-icon">
-                <i class="fas fa-folder-open"></i>
-            </div>
-            <h2 class="empty-title">Votre portefeuille est vide</h2>
-            <p class="empty-description">Commencez à ajouter des actions pour les suivre ici</p>
-            <button class="empty-button" onclick="window.location.href='/analyse'">
+            <h1 class="portfolio-title"><i class="fas fa-briefcase"></i> Mon Portefeuille</h1>
+            <button class="add-stock-btn" onclick="openAddModal()">
                 <i class="fas fa-plus"></i>
                 <span>Ajouter une action</span>
             </button>
         </div>
-        {% endif %}
+
+        <!-- Tabs -->
+        <div class="portfolio-tabs">
+            <button class="tab-btn active" onclick="switchTab('all', this)">Toutes les actions</button>
+            <button class="tab-btn" onclick="switchTab('US', this)">Actions US</button>
+            <button class="tab-btn" onclick="switchTab('EU', this)">Actions EU</button>
+        </div>
+
+        <div id="stocks-container" class="stocks-grid">
+            <!-- Stocks rendered here -->
+        </div>
     </div>
-    
+
+    <!-- Add Stock Modal -->
+    <div id="add-modal" class="modal-overlay" onclick="if(event.target === this) closeAddModal()">
+        <div class="modal-content">
+            <h2 class="modal-title">Ajouter une action</h2>
+            <div class="form-group">
+                <label class="form-label">Ticker (ex: AAPL, MSFT, TTE.PA)</label>
+                <input type="text" id="ticker-input" class="form-input" placeholder="AAPL" onkeypress="if(event.key==='Enter') addStock()">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Marché</label>
+                <select id="market-input" class="form-input">
+                    <option value="US">US</option>
+                    <option value="EU">EU</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn secondary" onclick="closeAddModal()">Annuler</button>
+                <button class="modal-btn primary" onclick="addStock()">Ajouter</button>
+            </div>
+        </div>
+    </div>
+
     {% include 'components/footer.html' %}
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
     <script>
-    function filterByMarket(market) {
-        const rows = document.querySelectorAll('.portfolio-table tbody tr');
-        rows.forEach(row => {
-            const ticker = row.querySelector('.table-ticker').textContent;
-            if (market === 'all' || 
-                (market === 'EU' && ticker.includes('.PA')) ||
-                (market === 'US' && !ticker.includes('.PA'))) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    }
-    
-    function removeStock(ticker) {
-        if (confirm(`Retirer ${ticker} du portefeuille ?`)) {
-            fetch(`/api/portfolio/remove/${ticker}`, {method: 'DELETE'})
-                .then(() => location.reload())
-                .catch(err => alert('Erreur : ' + err));
+    const STORAGE_KEY = 'user_portfolio';
+    let currentFilter = 'all';
+
+    function getPortfolio() {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (!stored) return [];
+            let portfolio = JSON.parse(stored);
+            // Clean up undefined/invalid entries
+            portfolio = portfolio.filter(s => s && s.ticker && typeof s.ticker === 'string');
+            return portfolio;
+        } catch {
+            return [];
         }
     }
-    
-    setInterval(() => location.reload(), 60000);
+
+    function savePortfolio(stocks) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(stocks));
+    }
+
+    function addStock() {
+        const tickerInput = document.getElementById('ticker-input');
+        const marketInput = document.getElementById('market-input');
+        const ticker = tickerInput.value.trim().toUpperCase();
+        const market = marketInput.value;
+        
+        if (!ticker) return;
+
+        const portfolio = getPortfolio();
+        if (portfolio.find(s => s.ticker === ticker)) {
+            alert('Cette action est déjà dans votre portefeuille');
+            return;
+        }
+
+        portfolio.push({ ticker, market });
+        savePortfolio(portfolio);
+        closeAddModal();
+        tickerInput.value = '';
+        loadPortfolio();
+    }
+
+    function removeStock(ticker) {
+        if (!confirm(`Supprimer ${ticker} du portefeuille ?`)) return;
+        
+        const portfolio = getPortfolio().filter(s => s.ticker !== ticker);
+        savePortfolio(portfolio);
+        loadPortfolio();
+    }
+
+    function switchTab(filter, btn) {
+        currentFilter = filter;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadPortfolio();
+    }
+
+    async function loadPortfolio() {
+        const container = document.getElementById('stocks-container');
+        let portfolio = getPortfolio();
+
+        // Apply filter
+        if (currentFilter !== 'all') {
+            portfolio = portfolio.filter(s => s.market === currentFilter);
+        }
+
+        if (portfolio.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-briefcase"></i>
+                    <h3>Aucune action dans ce filtre</h3>
+                    <p>Cliquez sur "Ajouter une action" pour commencer</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#9ca3af;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>';
+
+        try {
+            const promises = portfolio.map(stock => 
+                fetch(`/api/quote/${stock.ticker}`)
+                    .then(r => r.json())
+                    .then(data => ({
+                        ticker: stock.ticker,
+                        market: stock.market,
+                        name: data.name || data.longName || stock.ticker,
+                        price: data.price || data.regularMarketPrice || 0,
+                        change: data.change || data.regularMarketChange || 0,
+                        changePercent: data.changePercent || data.regularMarketChangePercent || 0
+                    }))
+                    .catch(() => ({
+                        ticker: stock.ticker,
+                        market: stock.market,
+                        name: stock.ticker,
+                        price: 0,
+                        change: 0,
+                        changePercent: 0
+                    }))
+            );
+
+            const results = await Promise.all(promises);
+            
+            container.innerHTML = results.map(stock => {
+                const changeClass = stock.change >= 0 ? 'positive' : 'negative';
+                const changeIcon = stock.change >= 0 ? 'arrow-up' : 'arrow-down';
+                
+                return `
+                    <div class="stock-card" onclick="window.location.href='/analyse?ticker=${stock.ticker}'">
+                        <button class="delete-btn" onclick="event.stopPropagation(); removeStock('${stock.ticker}')" title="Supprimer">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="stock-ticker">${stock.ticker}</div>
+                        <div class="stock-name">${stock.name}</div>
+                        <div class="stock-price">$${stock.price.toFixed(2)}</div>
+                        <div class="stock-change ${changeClass}">
+                            <i class="fas fa-${changeIcon}"></i>
+                            <span>${stock.change.toFixed(2)} (${stock.changePercent.toFixed(2)}%)</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch (err) {
+            console.error('Load error:', err);
+            container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#FF3366;">Erreur de chargement</div>';
+        }
+    }
+
+    function openAddModal() {
+        document.getElementById('add-modal').classList.add('open');
+        setTimeout(() => document.getElementById('ticker-input').focus(), 100);
+    }
+
+    function closeAddModal() {
+        document.getElementById('add-modal').classList.remove('open');
+    }
+
+    loadPortfolio();
+    setInterval(loadPortfolio, 30000);
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

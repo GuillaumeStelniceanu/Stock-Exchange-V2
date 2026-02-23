@@ -4,189 +4,163 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Technical Analyst</title>
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <style>
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+    }
+    .dashboard-header {
+        margin-bottom: 2rem;
+    }
+    .dashboard-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text-primary, #e8eaed);
+        margin-bottom: 0.5rem;
+    }
+    .dashboard-subtitle {
+        font-size: 0.9375rem;
+        color: var(--text-secondary, #9ca3af);
+    }
+    /* Grid aligned with 2 equal columns */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        align-items: start;
+    }
+    @media (max-width: 992px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    .dashboard-card {
+        background: var(--bg-card, #131920);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 1.25rem;
+        padding: 1.75rem;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+    .card-title {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--text-primary, #e8eaed);
+        margin-bottom: 1.5rem;
+    }
+    .card-title i {
+        color: var(--primary, #0066FF);
+        font-size: 1.25rem;
+    }
+    .status-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.875rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .status-row:last-child {
+        border-bottom: none;
+    }
+    .status-label {
+        font-size: 0.9375rem;
+        color: var(--text-secondary, #9ca3af);
+    }
+    .status-value {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary, #e8eaed);
+    }
+    .status-badge {
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+    .status-badge.success {
+        background: rgba(0, 230, 118, 0.15);
+        color: #00E676;
+    }
+    .status-badge.info {
+        background: rgba(0, 102, 255, 0.15);
+        color: #4d8ff5;
+    }
+    </style>
 </head>
 <body>
     {% include 'components/navbar.html' %}
-    
+
     <div class="dashboard-container">
         <div class="dashboard-header">
-            <div>
-                <h1 class="dashboard-title">Dashboard</h1>
-                <p class="dashboard-subtitle">Vue d'ensemble du marché et de vos actions</p>
-            </div>
-            <div class="dashboard-actions">
-                <button class="action-btn" onclick="location.reload()">
-                    <i class="fas fa-sync-alt"></i>
-                    <span>Actualiser</span>
-                </button>
-                <button class="action-btn primary" onclick="window.location.href='/analyse'">
-                    <i class="fas fa-search"></i>
-                    <span>Analyser</span>
-                </button>
-            </div>
+            <h1 class="dashboard-title"><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+            <p class="dashboard-subtitle">Vue d'ensemble du système et des performances</p>
         </div>
-        
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon success">
-                    <i class="fas fa-check-circle"></i>
+
+        <div class="dashboard-grid">
+            <!-- État du système -->
+            <div class="dashboard-card">
+                <h2 class="card-title">
+                    <i class="fas fa-info-circle"></i>
+                    État du système
+                </h2>
+                <div class="status-row">
+                    <span class="status-label">API Alpha Vantage</span>
+                    <span class="status-value">
+                        <span class="status-badge success">Actif</span>
+                    </span>
                 </div>
-                <div class="stat-info">
-                    <div class="stat-label">Sources actives</div>
-                    <div class="stat-value">{{ stats.active_sources if stats else '5' }}/5</div>
+                <div class="status-row">
+                    <span class="status-label">Yahoo Finance</span>
+                    <span class="status-value">
+                        <span class="status-badge success">Actif</span>
+                    </span>
                 </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon primary">
-                    <i class="fas fa-database"></i>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-label">Données en cache</div>
-                    <div class="stat-value">{{ stats.cached_items if stats else '127' }}</div>
-                </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon info">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-label">Actions suivies</div>
-                    <div class="stat-value">{{ stats.tracked_stocks if stats else '8' }}</div>
+                <div class="status-row">
+                    <span class="status-label">Cache système</span>
+                    <span class="status-value">
+                        <span class="status-badge info">OK</span>
+                    </span>
                 </div>
             </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon warning">
-                    <i class="fas fa-clock"></i>
+
+            <!-- Statistiques -->
+            <div class="dashboard-card">
+                <h2 class="card-title">
+                    <i class="fas fa-chart-bar"></i>
+                    Statistiques
+                </h2>
+                <div class="status-row">
+                    <span class="status-label">Sources actives</span>
+                    <span class="status-value">{{ stats.active_sources if stats else 2 }}</span>
                 </div>
-                <div class="stat-info">
-                    <div class="stat-label">Dernière mise à jour</div>
-                    <div class="stat-value">{{ stats.last_update if stats else 'Maintenant' }}</div>
+                <div class="status-row">
+                    <span class="status-label">Actions suivies</span>
+                    <span class="status-value">{{ stats.tracked_stocks if stats else 14 }}</span>
                 </div>
-            </div>
-        </div>
-        
-        <div class="content-grid">
-            <div class="stocks-section">
-                <div class="section-card">
-                    <div class="section-header">
-                        <h2 class="section-title">
-                            <i class="fas fa-fire"></i>
-                            Actions populaires
-                        </h2>
-                    </div>
-                    <div class="stocks-list">
-                        {% set popular = [
-                            {'ticker': 'AAPL', 'name': 'Apple Inc.', 'price': 150.25, 'change': 1.69, 'sector': 'Technology'},
-                            {'ticker': 'MSFT', 'name': 'Microsoft Corp.', 'price': 380.75, 'change': -0.33, 'sector': 'Technology'},
-                            {'ticker': 'GOOGL', 'name': 'Alphabet Inc.', 'price': 142.50, 'change': 2.74, 'sector': 'Communication'},
-                            {'ticker': 'TSLA', 'name': 'Tesla Inc.', 'price': 245.60, 'change': -3.31, 'sector': 'Automotive'},
-                            {'ticker': 'NVDA', 'name': 'NVIDIA Corp.', 'price': 720.80, 'change': 2.17, 'sector': 'Technology'}
-                        ] %}
-                        {% for stock in popular %}
-                        <div class="stock-item" onclick="window.location.href='/analyse?ticker={{ stock.ticker }}'">
-                            <div class="stock-item-left">
-                                <span class="stock-ticker">{{ stock.ticker }}</span>
-                                <span class="stock-name">{{ stock.name }}</span>
-                                <span class="stock-sector">{{ stock.sector }}</span>
-                            </div>
-                            <div class="stock-item-right">
-                                <span class="stock-price">${{ "%.2f"|format(stock.price) }}</span>
-                                <span class="stock-change {% if stock.change >= 0 %}positive{% else %}negative{% endif %}">
-                                    {{ "%.2f"|format(stock.change|abs) }}%
-                                </span>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            
-            <div class="tools-section">
-                <div class="section-card">
-                    <div class="section-header">
-                        <h2 class="section-title">
-                            <i class="fas fa-tools"></i>
-                            Outils rapides
-                        </h2>
-                    </div>
-                    <div class="tools-grid">
-                        <button class="tool-btn" onclick="window.location.href='/analyse'">
-                            <i class="fas fa-search"></i>
-                            <span>Rechercher</span>
-                        </button>
-                        <button class="tool-btn" onclick="window.location.href='/portefeuille'">
-                            <i class="fas fa-folder"></i>
-                            <span>Portefeuille</span>
-                        </button>
-                        <button class="tool-btn" onclick="clearCache()">
-                            <i class="fas fa-trash"></i>
-                            <span>Vider cache</span>
-                        </button>
-                        <button class="tool-btn" onclick="testSystem()">
-                            <i class="fas fa-heartbeat"></i>
-                            <span>Test système</span>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="section-card">
-                    <div class="section-header">
-                        <h2 class="section-title">
-                            <i class="fas fa-info-circle"></i>
-                            État du système
-                        </h2>
-                    </div>
-                    <div class="system-status">
-                        <div class="status-item">
-                            <span class="status-label">API Alpha Vantage</span>
-                            <span class="status-badge success">Actif</span>
-                        </div>
-                        <div class="status-item">
-                            <span class="status-label">Yahoo Finance</span>
-                            <span class="status-badge success">Actif</span>
-                        </div>
-                        <div class="status-item">
-                            <span class="status-label">Cache système</span>
-                            <span class="status-badge success">OK</span>
-                        </div>
-                    </div>
+                <div class="status-row">
+                    <span class="status-label">Dernière mise à jour</span>
+                    <span class="status-value">{{ stats.last_update if stats else 'À l\'instant' }}</span>
                 </div>
             </div>
         </div>
     </div>
-    
+
     {% include 'components/footer.html' %}
-    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <script>
-    function clearCache() {
-        if (confirm('Voulez-vous vraiment vider le cache ?')) {
-            fetch('/api/clear-cache', {method: 'POST'})
-                .then(() => alert('Cache vidé avec succès'))
-                .catch(() => alert('Erreur lors du vidage du cache'));
-        }
-    }
-    
-    function testSystem() {
-        alert('Test du système en cours...');
-        fetch('/api/health')
-            .then(r => r.json())
-            .then(data => alert('Système : ' + (data.status === 'ok' ? 'OK' : 'Erreur')))
-            .catch(() => alert('Erreur de connexion'));
-    }
-    </script>
 </body>
 </html>

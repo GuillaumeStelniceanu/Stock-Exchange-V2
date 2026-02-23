@@ -282,6 +282,10 @@
                         </div>
                         {% endif %}
                     </div>
+                    <button id="portfolio-btn" onclick="togglePortfolio()" style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.25rem;background:rgba(0,102,255,0.1);border:1px solid rgba(0,102,255,0.3);border-radius:0.75rem;color:#4d8ff5;font-weight:600;font-size:0.9375rem;cursor:pointer;transition:all 0.2s;margin-top:0.75rem;">
+                        <i class="fas fa-briefcase"></i>
+                        <span id="portfolio-btn-text">Ajouter au portefeuille</span>
+                    </button>
                 </div>
             </div>
 
@@ -824,5 +828,8 @@
     {% include 'components/footer.html' %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    const PORTFOLIO_KEY='user_portfolio',CURRENT_TICKER='{{ ticker }}';function getPortfolio(){try{const t=localStorage.getItem(PORTFOLIO_KEY);if(!t)return[];let e=JSON.parse(t);return e=e.filter(t=>t&&t.ticker&&"string"==typeof t.ticker),e}catch{return[]}}function savePortfolio(t){localStorage.setItem(PORTFOLIO_KEY,JSON.stringify(t))}function isInPortfolio(){return getPortfolio().some(t=>t.ticker===CURRENT_TICKER)}function updateButton(){const t=document.getElementById("portfolio-btn"),e=document.getElementById("portfolio-btn-text");t&&(isInPortfolio()?(t.style.background="rgba(0,230,118,0.15)",t.style.borderColor="rgba(0,230,118,0.3)",t.style.color="#00E676",e.textContent="Dans le portefeuille"):(t.style.background="rgba(0,102,255,0.1)",t.style.borderColor="rgba(0,102,255,0.3)",t.style.color="#4d8ff5",e.textContent="Ajouter au portefeuille"))}function togglePortfolio(){const t=getPortfolio(),e=t.findIndex(t=>t.ticker===CURRENT_TICKER);-1!==e?(t.splice(e,1),alert("Action retirée du portefeuille")):(t.push({ticker:CURRENT_TICKER,market:CURRENT_TICKER.includes(".PA")||CURRENT_TICKER.includes(".DE")||CURRENT_TICKER.includes(".AS")?"EU":"US"}),alert("Action ajoutée au portefeuille")),savePortfolio(t),updateButton()}CURRENT_TICKER&&updateButton();
+    </script>
 </body>
 </html>
