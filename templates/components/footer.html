@@ -21,7 +21,7 @@
                     <p class="footer-brand-tagline">Analyse technique avancée</p>
                 </div>
             </div>
-            
+
             <div class="footer-sections">
                 <div class="footer-section">
                     <h5 class="footer-section-title">Navigation</h5>
@@ -32,7 +32,7 @@
                         <li><a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                     </ul>
                 </div>
-                
+
                 <div class="footer-section">
                     <h5 class="footer-section-title">Support</h5>
                     <ul class="footer-links">
@@ -44,7 +44,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="footer-bottom">
             <div class="footer-bottom-left">
                 <p class="footer-copyright">© 2026 Technical Analyst. <span class="separator">•</span> Tous droits réservés.</p>
@@ -108,27 +108,27 @@
         openModal('Signaler un bug', '<div class="modal-info-content"><p>Merci de nous aider à améliorer l\'application !</p><form onsubmit="submitBugReport(event)"><input type="text" placeholder="Titre du bug" required><textarea placeholder="Description détaillée..." rows="5" required></textarea><button type="submit" class="btn-primary">Envoyer</button></form></div>');
     };
     window.showStatus = function() {
-        openModal('Statut du système', '<div class="modal-info-content"><div class="status-item"><i class="fas fa-check-circle" style="color: var(--green)"></i><span>API: Opérationnel</span></div><div class="status-item"><i class="fas fa-check-circle" style="color: var(--green)"></i><span>Base de données: Opérationnel</span></div><div class="status-item"><i class="fas fa-check-circle" style="color: var(--green)"></i><span>Services de données: Opérationnel</span></div><button class="btn-primary" onclick="closeFooterModal()">Fermer</button></div>');
+        openModal('Statut du système', '<div class="modal-info-content"><div class="status-item"><i class="fas fa-check-circle" style="color:var(--green)"></i><span>API: Opérationnel</span></div><div class="status-item"><i class="fas fa-check-circle" style="color:var(--green)"></i><span>Base de données: Opérationnel</span></div><div class="status-item"><i class="fas fa-check-circle" style="color:var(--green)"></i><span>Services de données: Opérationnel</span></div><button class="btn-primary" onclick="closeFooterModal()">Fermer</button></div>');
     };
     window.showChangelog = function() {
-        openModal('Historique des versions', '<div class="modal-info-content"><h5>v2.1.0 - 30 Jan 2026</h5><ul><li>Nouvelle interface utilisateur</li><li>Support multi-sources de données</li><li>Performance améliorée</li></ul><button class="btn-primary" onclick="closeFooterModal()">Fermer</button></div>');
+        openModal('Historique des versions', '<div class="modal-info-content"><h5>v2.1.0 - Jan 2026</h5><ul><li>Nouvelle interface utilisateur</li><li>Support multi-sources de données</li><li>Performance améliorée</li><li>Graphiques Plotly interactifs</li></ul><button class="btn-primary" onclick="closeFooterModal()">Fermer</button></div>');
     };
     window.showPrivacy = function() {
         openModal('Politique de confidentialité', '<div class="modal-info-content"><p>Nous respectons votre vie privée et protégeons vos données.</p><p>Cette application ne collecte pas de données personnelles sans votre consentement.</p><button class="btn-primary" onclick="closeFooterModal()">Fermer</button></div>');
     };
     window.showTerms = function() {
-        openModal('Conditions d\'utilisation', '<div class="modal-info-content"><p>En utilisant Technical Analyst, vous acceptez nos conditions d\'utilisation.</p><p>Ce service est fourni "tel quel" sans garantie.</p><button class="btn-primary" onclick="closeFooterModal()">Fermer</button></div>');
+        openModal("Conditions d'utilisation", '<div class="modal-info-content"><p>En utilisant Technical Analyst, vous acceptez nos conditions d\'utilisation.</p><p>Ce service est fourni "tel quel" sans garantie.</p><button class="btn-primary" onclick="closeFooterModal()">Fermer</button></div>');
     };
     window.showCookies = function() {
         openModal('Politique des cookies', '<div class="modal-info-content"><p>Nous utilisons des cookies pour améliorer votre expérience.</p><p>Les cookies sont utilisés uniquement pour les préférences utilisateur (thème, etc.).</p><button class="btn-primary" onclick="closeFooterModal()">Fermer</button></div>');
     };
     window.sendSupportMessage = function(e) {
         e.preventDefault();
-        openModal('Succès', '<div class="modal-info-content success"><i class="fas fa-check-circle" style="font-size: 3rem; color: var(--green);"></i><h5>Message envoyé !</h5><p>Notre équipe vous répondra dans les plus brefs délais.</p><button class="btn-primary" onclick="closeFooterModal()">Fermer</button></div>');
+        openModal('Succès', '<div class="modal-info-content success"><i class="fas fa-check-circle" style="font-size:3rem;color:var(--green);"></i><h5>Message envoyé !</h5><p>Notre équipe vous répondra dans les plus brefs délais.</p><button class="btn-primary" onclick="closeFooterModal()">Fermer</button></div>');
     };
     window.submitBugReport = function(e) {
         e.preventDefault();
-        openModal('Succès', '<div class="modal-info-content success"><i class="fas fa-check-circle" style="font-size: 3rem; color: var(--green);"></i><h5>Rapport envoyé !</h5><p>Merci pour votre contribution à l\'amélioration de l\'application.</p><button class="btn-primary" onclick="closeFooterModal()">Fermer</button></div>');
+        openModal('Succès', '<div class="modal-info-content success"><i class="fas fa-check-circle" style="font-size:3rem;color:var(--green);"></i><h5>Rapport envoyé !</h5><p>Merci pour votre contribution.</p><button class="btn-primary" onclick="closeFooterModal()">Fermer</button></div>');
     };
 })();
 </script>

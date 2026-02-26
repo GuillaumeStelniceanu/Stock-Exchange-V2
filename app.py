@@ -1,6 +1,7 @@
 # app.py - OPTIMIZED WITH REAL-TIME DATA & FAST CACHING
 from flask import Flask, render_template, request, jsonify
 from flask_caching import Cache
+import json
 import numpy as np
 from datetime import datetime
 import logging
@@ -66,23 +67,16 @@ def calculate_rsi(prices, period=14):
     """Fast RSI calculation"""
     if len(prices) < period + 1:
         return None
-    
     prices = np.array(prices)
     delta = np.diff(prices)
-    
     gain = np.where(delta > 0, delta, 0)
     loss = np.where(delta < 0, -delta, 0)
-    
     avg_gain = np.mean(gain[:period])
     avg_loss = np.mean(loss[:period])
-    
     if avg_loss == 0:
         return 100.0
-    
     rs = avg_gain / avg_loss
-    rsi = 100 - (100 / (1 + rs))
-    
-    return float(rsi)
+    return float(100 - (100 / (1 + rs)))
 
 def calculate_ma(prices, period):
     """Fast MA calculation"""
@@ -101,91 +95,86 @@ def calculate_volatility(prices):
 @app.route('/')
 def home():
     """Homepage"""
-    return render_template('index.html', 
+    return render_template('index.html',
                          portefeuilles=PORTEFEUILLES,
                          periods=PERIODS)
 
 @app.route('/analyse')
-@cache.cached(timeout=180, query_string=True)  # Cache per ticker/period
+@cache.cached(timeout=180, query_string=True)
 def analyse():
     """Analysis page with FIXED CHARTS"""
     ticker = request.args.get('ticker', '').upper().strip()
     period = request.args.get('period', '6mo')
-    
+
     if not ticker:
         return render_template('analyse.html',
                              portefeuilles=PORTEFEUILLES,
                              periods=PERIODS)
-    
+
     try:
         logger.info(f"Analyzing {ticker} ({period})")
-        
+
         # Get data
         df = fetcher.get_stock_data(ticker, period=period, interval="1d")
-        
+
         if df is None or df.empty:
             raise ValueError(f"No data for {ticker}")
-        
+
         info = fetcher.get_stock_info(ticker)
-        company_name = info.get('name', ticker) if info else ticker
-        
-        # Extract data
-        dates = df.index.strftime('%Y-%m-%d').tolist()
-        closes = df['Close'].tolist()
-        opens = df['Open'].tolist()
-        highs = df['High'].tolist()
-        lows = df['Low'].tolist()
-        volumes = df['Volume'].tolist()
-        
-        # Calculate indicators
-        current_rsi = calculate_rsi(closes)
-        ma_20 = calculate_ma(closes, 20)
-        ma_50 = calculate_ma(closes, 50)
-        volatility = calculate_volatility(closes)
-        
-        # Calculate MA series for chart
-        closes_arr = np.array(closes, dtype=float)
+        current_price = safe_float(df['Close'].iloc[-1])
+        prev_price = safe_float(df['Close'].iloc[-2]) if len(df) > 1 else current_price
+        price_change = current_price - prev_price
+        price_change_percent = (price_change / prev_price * 100) if prev_price > 0 else 0
+
+        closes = [safe_float(x) for x in df['Close'].tolist()]
+        opens = [safe_float(x) for x in df['Open'].tolist()]
+        highs = [safe_float(x) for x in df['High'].tolist()]
+        lows = [safe_float(x) for x in df['Low'].tolist()]
+        volumes = [int(x) for x in df['Volume'].tolist()]
+        dates = [str(d.date()) if hasattr(d, 'date') else str(d)[:10] for d in df.index.tolist()]
+
+        # Moving averages
+        ma20 = [None] * len(closes)
+        ma50 = [None] * len(closes)
+        ma200 = [None] * len(closes)
+        for i in range(len(closes)):
+            if i >= 19:
+                ma20[i] = round(float(np.mean(closes[max(0, i-19):i+1])), 2)
+            if i >= 49:
+                ma50[i] = round(float(np.mean(closes[max(0, i-49):i+1])), 2)
+            if i >= 199:
+                ma200[i] = round(float(np.mean(closes[max(0, i-199):i+1])), 2)
+
+        # Bollinger Bands
+        bb_upper = [None] * len(closes)
+        bb_lower = [None] * len(closes)
+        bb_mid = [None] * len(closes)
+        for i in range(19, len(closes)):
+            window = closes[i-19:i+1]
+            m = float(np.mean(window))
+            s = float(np.std(window))
+            bb_mid[i] = round(m, 2)
+            bb_upper[i] = round(m + 2 * s, 2)
+            bb_lower[i] = round(m - 2 * s, 2)
+
+        # VWAP
+        vwap = [None] * len(closes)
+        cum_pv = 0
+        cum_v = 0
+        for i in range(len(closes)):
+            typ = (highs[i] + lows[i] + closes[i]) / 3
+            cum_pv += typ * volumes[i]
+            cum_v += volumes[i]
+            vwap[i] = round(cum_pv / cum_v, 2) if cum_v > 0 else None
+
+        # RSI series (Wilder smoothing)
+        closes_arr = np.array(closes)
         n = len(closes_arr)
-
-        def rolling_mean(arr, w):
-            result = [None] * len(arr)
-            for i in range(w - 1, len(arr)):
-                result[i] = float(np.mean(arr[i - w + 1:i + 1]))
-            return result
-
-        def rolling_std(arr, w):
-            result = [None] * len(arr)
-            for i in range(w - 1, len(arr)):
-                result[i] = float(np.std(arr[i - w + 1:i + 1], ddof=0))
-            return result
-
-        def ewm_series(arr, span):
-            alpha = 2.0 / (span + 1)
-            result = [None] * len(arr)
-            for i in range(len(arr)):
-                if result[i - 1] is None or i == 0:
-                    result[i] = float(arr[i])
-                else:
-                    result[i] = alpha * float(arr[i]) + (1 - alpha) * result[i - 1]
-            return result
-
-        ma20_series  = rolling_mean(closes_arr, 20)
-        ma50_series  = rolling_mean(closes_arr, 50)
-        ma200_series = rolling_mean(closes_arr, 200)
-
-        # Bollinger Bands (20, 2σ)
-        bb_mid   = rolling_mean(closes_arr, 20)
-        bb_std   = rolling_std(closes_arr, 20)
-        bb_upper = [bb_mid[i] + 2 * bb_std[i] if bb_mid[i] is not None else None for i in range(n)]
-        bb_lower = [bb_mid[i] - 2 * bb_std[i] if bb_mid[i] is not None else None for i in range(n)]
-
-        # RSI series (full, period=14)
         rsi_series = [None] * n
-        if n >= 15:
+        if n > 15:
             deltas = np.diff(closes_arr)
-            gains  = np.where(deltas > 0,  deltas, 0.0)
+            gains = np.where(deltas > 0, deltas, 0.0)
             losses = np.where(deltas < 0, -deltas, 0.0)
-            # Wilder smoothing: seed with simple mean of first 14
             avg_gain = float(np.mean(gains[:14]))
             avg_loss = float(np.mean(losses[:14]))
             for i in range(14, n - 1):
@@ -194,12 +183,25 @@ def analyse():
                 rs = avg_gain / avg_loss if avg_loss != 0 else 0
                 rsi_series[i + 1] = round(100 - (100 / (1 + rs)), 2)
 
-        # MACD series (12, 26, 9)
-        ema12   = ewm_series(closes_arr, 12)
-        ema26   = ewm_series(closes_arr, 26)
-        macd_line   = [round(ema12[i] - ema26[i], 6) if ema12[i] and ema26[i] else None for i in range(n)]
-        macd_vals   = [v for v in macd_line if v is not None]
-        # Signal line: EWM-9 of MACD
+        # EMA helper
+        def ewm_series(arr, span):
+            result = [None] * len(arr)
+            alpha = 2.0 / (span + 1)
+            last = None
+            for i, v in enumerate(arr):
+                if v is None:
+                    continue
+                if last is None:
+                    last = v
+                else:
+                    last = alpha * v + (1 - alpha) * last
+                result[i] = round(last, 6)
+            return result
+
+        # MACD (12, 26, 9)
+        ema12 = ewm_series(closes, 12)
+        ema26 = ewm_series(closes, 26)
+        macd_line = [round(ema12[i] - ema26[i], 6) if (ema12[i] is not None and ema26[i] is not None) else None for i in range(n)]
         macd_signal_raw = [None] * n
         alpha9 = 2.0 / 10
         last = None
@@ -213,86 +215,66 @@ def analyse():
         macd_hist = [round(macd_line[i] - macd_signal_raw[i], 6)
                      if (macd_line[i] is not None and macd_signal_raw[i] is not None) else None
                      for i in range(n)]
-        
-        # Generate signals
-        signals = []
-        if current_rsi is not None:
-            if current_rsi > 70:
-                signals.append({
-                    'type': 'sell',
-                    'title': 'RSI Surachat',
-                    'description': f'RSI à {current_rsi:.1f} > 70 - Signal de vente potentiel',
-                    'icon': 'exclamation-triangle',
-                    'value': f'RSI: {current_rsi:.1f}'
-                })
-            elif current_rsi < 30:
-                signals.append({
-                    'type': 'buy',
-                    'title': 'RSI Survente',
-                    'description': f'RSI à {current_rsi:.1f} < 30 - Signal d\'achat potentiel',
-                    'icon': 'check-circle',
-                    'value': f'RSI: {current_rsi:.1f}'
-                })
-        
-        # Price vs MA signals
-        current_price = safe_float(closes[-1])
-        if ma_20 and current_price > ma_20:
-            signals.append({
-                'type': 'buy',
-                'title': 'Prix > MA20',
-                'description': f'Prix ({current_price:.2f}) au-dessus de MA20 ({ma_20:.2f})',
-                'icon': 'arrow-up',
-                'value': f'+{((current_price - ma_20) / ma_20 * 100):.2f}%'
-            })
-        
-        # Stats
-        prev_price = safe_float(closes[-2]) if len(closes) > 1 else current_price
-        price_change = current_price - prev_price
-        price_change_percent = (price_change / prev_price * 100) if prev_price else 0
-        
-        analysis = {
-            'rsi': current_rsi,
-            'ma_20': ma_20,
-            'ma_50': ma_50,
-            'volatility': volatility,
-            'rsi_signal': 'danger' if current_rsi and current_rsi > 70 else ('success' if current_rsi and current_rsi < 30 else 'neutral'),
-            'signals': signals
-        }
-        
-        # Full JSON payload — all indicators for premium chart
+
         chart_data = json.dumps({
-            'dates':       dates,
-            'close':       closes,
-            'open':        opens,
-            'high':        highs,
-            'low':         lows,
-            'volume':      volumes,
-            'ma20':        ma20_series,
-            'ma50':        ma50_series,
-            'ma200':       ma200_series,
-            'bb_upper':    bb_upper,
-            'bb_lower':    bb_lower,
-            'rsi':         rsi_series,
-            'macd':        macd_line,
-            'macd_signal': macd_signal_raw,
-            'macd_hist':   macd_hist,
+            'dates': dates, 'close': closes, 'open': opens,
+            'high': highs, 'low': lows, 'volume': volumes,
+            'ma20': ma20, 'ma50': ma50, 'ma200': ma200,
+            'bb_upper': bb_upper, 'bb_lower': bb_lower,
+            'vwap': vwap,
+            'rsi': rsi_series,
+            'macd': macd_line, 'macd_signal': macd_signal_raw, 'macd_hist': macd_hist
         })
-        
-        # Historical data for table
+
+        # Technical analysis
+        rsi = calculate_rsi(closes)
+        ma20_val = calculate_ma(closes, 20)
+        ma50_val = calculate_ma(closes, 50)
+        volatility = calculate_volatility(closes)
+
+        signals = []
+        if rsi:
+            if rsi < 30:
+                signals.append({'type': 'BUY', 'indicator': 'RSI', 'message': f'RSI survendu ({rsi:.1f})'})
+            elif rsi > 70:
+                signals.append({'type': 'SELL', 'indicator': 'RSI', 'message': f'RSI suracheté ({rsi:.1f})'})
+        if ma20_val and ma50_val:
+            if current_price > ma20_val > ma50_val:
+                signals.append({'type': 'BUY', 'indicator': 'MA', 'message': 'Prix au-dessus des MMs'})
+            elif current_price < ma20_val < ma50_val:
+                signals.append({'type': 'SELL', 'indicator': 'MA', 'message': 'Prix en-dessous des MMs'})
+
+        buy_signals = sum(1 for s in signals if s['type'] == 'BUY')
+        sell_signals = sum(1 for s in signals if s['type'] == 'SELL')
+        if buy_signals > sell_signals:
+            overall = 'BUY'
+        elif sell_signals > buy_signals:
+            overall = 'SELL'
+        else:
+            overall = 'NEUTRAL'
+
+        analysis = {
+            'rsi': round(rsi, 2) if rsi else None,
+            'ma20': round(ma20_val, 2) if ma20_val else None,
+            'ma50': round(ma50_val, 2) if ma50_val else None,
+            'volatility': round(volatility, 2),
+            'signals': signals,
+            'overall': overall,
+            'buy_signals': buy_signals,
+            'sell_signals': sell_signals
+        }
+
+        company_name = info.get('name', ticker) if info else ticker
+
         historical_data = []
         for i in range(len(dates)):
             change = ((closes[i] - closes[i-1]) / closes[i-1] * 100) if i > 0 else 0
             historical_data.append({
-                'date': dates[i],
-                'open': opens[i],
-                'high': highs[i],
-                'low': lows[i],
-                'close': closes[i],
-                'volume': volumes[i],
+                'date': dates[i], 'open': opens[i], 'high': highs[i],
+                'low': lows[i], 'close': closes[i], 'volume': volumes[i],
                 'change': change
             })
-        
-        # FIXED: Ensure all stock info fields have values
+
         stock_info = {
             'name': company_name,
             'sector': info.get('sector', 'N/A') if info else 'N/A',
@@ -303,9 +285,9 @@ def analyse():
             'dividendYield': safe_float(info.get('dividendYield', 0) if info else 0),
             'marketCap': safe_float(info.get('marketCap', 0) if info else 0)
         }
-        
+
         logger.info(f"✓ Analysis complete: {ticker}")
-        
+
         return render_template('analyse.html',
                              ticker=ticker,
                              period=period,
@@ -320,7 +302,7 @@ def analyse():
                              period_label=PERIODS.get(period, '6 Mois'),
                              portefeuilles=PORTEFEUILLES,
                              periods=PERIODS)
-        
+
     except Exception as e:
         logger.error(f"Error analyzing {ticker}: {e}")
         return render_template('analyse.html',
@@ -335,12 +317,11 @@ def dashboard():
     """Dashboard page"""
     popular = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA']
     stocks_data = []
-    
+
     for ticker in popular:
         try:
             quote = fetcher.get_quote(ticker)
             info = fetcher.get_stock_info(ticker)
-            
             stocks_data.append({
                 'ticker': ticker,
                 'name': info.get('name', ticker) if info else ticker,
@@ -351,13 +332,13 @@ def dashboard():
             })
         except Exception as e:
             logger.debug(f"Dashboard error for {ticker}: {e}")
-    
+
     return render_template('dashboard.html',
                          stats={
                              'active_sources': 2,
                              'cached_items': 50,
                              'tracked_stocks': len(stocks_data),
-                             'last_update': 'À l\'instant'
+                             'last_update': "À l'instant"
                          },
                          portefeuilles=PORTEFEUILLES)
 
@@ -367,44 +348,54 @@ def portefeuille():
     try:
         market = request.args.get('market', 'US')
         stocks = PORTEFEUILLES.get(market, PORTEFEUILLES['US'])
-        
+
         portfolio_data = []
+        positive_count = 0
+        negative_count = 0
+
         for ticker, name in stocks.items():
             try:
                 quote = fetcher.get_quote(ticker)
+                price = safe_float(quote.get('price'))
+                change = safe_float(quote.get('change'))
+                change_pct = safe_float(quote.get('changePercent'))
+
+                if change >= 0:
+                    positive_count += 1
+                else:
+                    negative_count += 1
+
                 portfolio_data.append({
                     'ticker': ticker,
                     'name': name,
-                    'price': safe_float(quote.get('price')),
-                    'change': safe_float(quote.get('change')),
-                    'change_percent': safe_float(quote.get('changePercent')),
-                    'volume': int(quote.get('volume', 0))
+                    'price': price,
+                    'change': change,
+                    'change_percent': change_pct,
+                    'error': None
                 })
             except Exception as e:
-                logger.debug(f"Portfolio error for {ticker}: {e}")
-                # Still show stock with placeholder data
                 portfolio_data.append({
                     'ticker': ticker,
                     'name': name,
-                    'price': 0,
-                    'change': 0,
-                    'change_percent': 0,
-                    'volume': 0
+                    'price': None,
+                    'change': None,
+                    'change_percent': None,
+                    'error': str(e)
                 })
-        
-        positive_count = sum(1 for s in portfolio_data if s['change'] > 0)
-        negative_count = len(portfolio_data) - positive_count
-        
+
         return render_template('portefeuille.html',
-                             portfolio=portfolio_data,
+                             portfolio_data=portfolio_data,
+                             market=market,
                              positive_count=positive_count,
                              negative_count=negative_count,
                              portefeuilles=PORTEFEUILLES,
                              current_year=datetime.now().year)
+
     except Exception as e:
         logger.error(f"Portfolio error: {e}")
         return render_template('portefeuille.html',
-                             portfolio=[],
+                             portfolio_data=[],
+                             market='US',
                              positive_count=0,
                              negative_count=0,
                              error="Impossible de charger le portefeuille",
@@ -415,16 +406,15 @@ def portefeuille():
 @app.route('/api/search')
 @cache.cached(timeout=300, query_string=True)
 def search_tickers():
-    """Enhanced search API - searches both local and Yahoo Finance"""
+    """Enhanced search API"""
     query = request.args.get('q', '').lower()
-    
+
     if len(query) < 2:
         return jsonify({'suggestions': []})
-    
+
     results = []
     seen = set()
-    
-    # First: search local portfolio
+
     for market, stocks in PORTEFEUILLES.items():
         for ticker, name in stocks.items():
             if query in ticker.lower() or query in name.lower():
@@ -440,8 +430,7 @@ def search_tickers():
                         break
         if len(results) >= 10:
             break
-    
-    # Second: if less than 10 results, try Yahoo Finance search
+
     if len(results) < 10:
         try:
             import yfinance as yf
@@ -458,11 +447,11 @@ def search_tickers():
                     })
         except:
             pass
-    
+
     return jsonify({'suggestions': results})
 
 @app.route('/api/quote/<ticker>')
-@cache.cached(timeout=60)  # 1 minute cache for quotes
+@cache.cached(timeout=60)
 def get_quote_api(ticker):
     """Real-time quote API"""
     try:
@@ -492,12 +481,11 @@ def clear_cache_api():
 if __name__ == '__main__':
     logger.info("🚀 Technical Analyst Started (OPTIMIZED)")
     logger.info("🌐 http://localhost:5000")
-    
-    # Test connection
+
     try:
         test_quote = fetcher.get_quote("AAPL")
         logger.info(f"✅ System ready: AAPL = ${test_quote['price']:.2f}")
     except Exception as e:
         logger.warning(f"⚠️  Using mock data mode: {e}")
-    
+
     app.run(debug=True, host='0.0.0.0', port=5000)

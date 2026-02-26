@@ -61,7 +61,6 @@
 </div>
 
 <script>
-/* Dropdown is created in body, positioned dynamically */
 (function () {
     var scripts = document.querySelectorAll('script');
     var thisScript = scripts[scripts.length - 1];
@@ -76,20 +75,18 @@
     /* Create dropdown portaled to body */
     var drop = document.createElement('div');
     drop.className = 'sb-dropdown-portal';
-    drop.style.cssText = 'display:none;position:fixed;z-index:1;background:rgb(10,17,32);'
+    drop.style.cssText = 'display:none;position:fixed;z-index:99999;background:rgb(10,17,32);'
                        + 'border:1px solid rgba(0,102,255,0.5);border-radius:0.875rem;overflow:hidden;'
                        + 'box-shadow:0 20px 60px rgba(0,0,0,1);max-height:520px;overflow-y:auto;';
     document.body.appendChild(drop);
 
-    /* Position dropdown using viewport coordinates (fixed) */
     function positionDrop() {
         var rect = wrapper.getBoundingClientRect();
-        drop.style.top   = (rect.bottom + 8) + 'px';  /* viewport coords, no scrollY */
+        drop.style.top   = (rect.bottom + 8) + 'px';
         drop.style.left  = rect.left + 'px';
         drop.style.width = rect.width + 'px';
     }
-    
-    /* Continuous repositioning while open */
+
     var rafId = null;
     function keepPositioned() {
         if (drop.style.display !== 'none') {
@@ -98,7 +95,6 @@
         }
     }
 
-    /* Focus styling */
     input.addEventListener('focus', function () {
         wrapper.style.borderColor = '#0066FF';
         wrapper.style.boxShadow   = '0 0 0 4px rgba(0,102,255,0.12)';
@@ -110,7 +106,6 @@
         }, 150);
     });
 
-    /* Enter → navigate */
     input.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             var t = input.value.trim().toUpperCase();
@@ -118,9 +113,7 @@
         }
     });
 
-    /* Typing → search */
     input.addEventListener('input', function () {
-        /* Toggle icon visibility */
         var hasText = input.value.length > 0;
         icon.style.opacity  = hasText ? '0' : '1';
         icon.style.maxWidth = hasText ? '0' : '52px';
@@ -147,49 +140,32 @@
                  + 'border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);">'
                  + items.length + ' résultat' + (items.length > 1 ? 's' : '') + '</div>';
 
-        items.slice(0, 10).forEach(function (item) {
-            var sym  = String(item.symbol || item.ticker || '');
-            var name = String(item.name   || '');
-            var mkt  = String(item.market || '');
-            if (!sym) return;
-
-            var initials = sym.replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase() || sym.slice(0, 2);
-            var isEU     = mkt.toUpperCase() === 'EU';
+        items.slice(0, 8).forEach(function (item) {
+            var sym = item.ticker || item.symbol || '';
+            var name = item.name || '';
+            var mkt = item.market || 'US';
+            var isEU = mkt === 'EU';
+            var badgeBg  = isEU ? 'rgba(0,217,255,0.12)' : 'rgba(0,102,255,0.12)';
             var badgeCol = isEU ? '#00d9ff' : '#4d8ff5';
-            var badgeBg  = isEU ? 'rgba(0,217,255,0.12)' : 'rgba(0,102,255,0.14)';
-            var badgeBdr = isEU ? 'rgba(0,217,255,0.3)'  : 'rgba(0,102,255,0.3)';
+            var badgeBdr = isEU ? 'rgba(0,217,255,0.25)' : 'rgba(0,102,255,0.25)';
 
-            html += '<div onclick="window.location.href=\'/analyse?ticker=' + encodeURIComponent(sym) + '\'"'
-                  + ' style="display:flex;align-items:center;gap:1rem;padding:1rem 1.125rem;'
-                  + 'border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;'
-                  + 'transition:background 0.12s;"'
-                  + ' onmouseover="this.style.background=\'rgba(0,102,255,0.1)\'"'
-                  + ' onmouseout="this.style.background=\'transparent\'">'
-
-                  /* Icon */
-                  + '<div style="flex-shrink:0;width:42px;height:42px;border-radius:9px;'
-                  + 'background:rgba(0,102,255,0.15);border:1px solid rgba(0,102,255,0.25);'
-                  + 'display:flex;align-items:center;justify-content:center;'
-                  + 'font-family:JetBrains Mono,monospace;font-size:0.8125rem;font-weight:700;color:#4d8ff5;">'
-                  + initials + '</div>'
-
-                  /* Symbol + Name */
+            html += '<div onclick="window.location.href=\'/analyse?ticker=' + sym + '\'"'
+                  + ' style="display:flex;align-items:center;gap:1rem;padding:0.875rem 1.125rem;'
+                  + 'cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);'
+                  + 'transition:background 0.15s;" '
+                  + 'onmouseover="this.style.background=\'rgba(0,102,255,0.08)\'" '
+                  + 'onmouseout="this.style.background=\'\'">'
                   + '<div style="flex:1;min-width:0;">'
                   + '<div style="font-family:JetBrains Mono,monospace;font-size:1rem;font-weight:700;'
                   + 'color:#f1f5f9;line-height:1.2;">' + sym + '</div>'
                   + '<div style="font-size:0.875rem;color:#64748b;margin-top:2px;'
                   + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + name + '</div>'
                   + '</div>'
-
-                  /* Badge */
                   + '<span style="flex-shrink:0;font-family:JetBrains Mono,monospace;font-size:0.75rem;'
                   + 'font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:4px 11px;'
                   + 'border-radius:6px;background:' + badgeBg + ';color:' + badgeCol + ';'
                   + 'border:1px solid ' + badgeBdr + ';">' + mkt + '</span>'
-
-                  /* Arrow */
-                  + '<i class="fas fa-chevron-right" style="flex-shrink:0;color:rgba(255,255,255,0.2);'
-                  + 'font-size:0.75rem;"></i>'
+                  + '<i class="fas fa-chevron-right" style="flex-shrink:0;color:rgba(255,255,255,0.2);font-size:0.75rem;"></i>'
                   + '</div>';
         });
 
@@ -203,36 +179,24 @@
                        + '<i class="fas fa-search" style="margin-right:0.5rem;opacity:0.3;"></i>'
                        + 'Aucun résultat pour <strong style="color:#94a3b8;">"' + q + '"</strong></div>';
         drop.style.display = 'block';
-        keepPositioned();
+        if (!rafId) keepPositioned();
     }
 
     function closeDrop() {
         drop.style.display = 'none';
-        if (rafId) {
-            cancelAnimationFrame(rafId);
-            rafId = null;
-        }
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     }
 
-    /* No need for scroll listeners - RAF loop handles it */
-
-    /* Close on outside click */
     document.addEventListener('click', function (e) {
-        if (!component.contains(e.target) && !drop.contains(e.target)) {
-            closeDrop();
-        }
+        if (!component.contains(e.target) && !drop.contains(e.target)) closeDrop();
     });
 
-    /* Escape key */
     input.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') closeDrop();
     });
 
-    /* Cleanup on navigation away */
     window.addEventListener('beforeunload', function () {
-        if (drop && drop.parentNode) {
-            drop.parentNode.removeChild(drop);
-        }
+        if (drop && drop.parentNode) drop.parentNode.removeChild(drop);
     });
 })();
 </script>

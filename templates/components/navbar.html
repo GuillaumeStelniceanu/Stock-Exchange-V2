@@ -5,19 +5,8 @@
       <div class="brand-icon">
         <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
           <rect width="32" height="32" rx="8" fill="url(#brandGradient)" />
-          <path
-            d="M8 24L16 8L24 24"
-            stroke="white"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M12 18H20"
-            stroke="white"
-            stroke-width="2.5"
-            stroke-linecap="round"
-          />
+          <path d="M8 24L16 8L24 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M12 18H20" stroke="white" stroke-width="2.5" stroke-linecap="round" />
           <defs>
             <linearGradient id="brandGradient" x1="0" y1="0" x2="32" y2="32">
               <stop offset="0%" stop-color="#0066FF" />
@@ -33,47 +22,26 @@
     </a>
 
     <div class="nav-links desktop-nav">
-      <a
-        href="/"
-        class="nav-link {% if request.endpoint == 'home' %}active{% endif %}"
-      >
+      <a href="/" class="nav-link {% if request.endpoint == 'home' %}active{% endif %}">
         <i class="fas fa-home"></i><span>Accueil</span>
       </a>
-      <a
-        href="/analyse"
-        class="nav-link {% if request.endpoint == 'analyse' %}active{% endif %}"
-      >
+      <a href="/analyse" class="nav-link {% if request.endpoint == 'analyse' %}active{% endif %}">
         <i class="fas fa-search"></i><span>Analyse</span>
       </a>
-      <a
-        href="/portefeuille"
-        class="nav-link {% if request.endpoint == 'portefeuille' %}active{% endif %}"
-      >
+      <a href="/portefeuille" class="nav-link {% if request.endpoint == 'portefeuille' %}active{% endif %}">
         <i class="fas fa-folder"></i><span>Portefeuille</span>
       </a>
-      <a
-        href="/dashboard"
-        class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}"
-      >
+      <a href="/dashboard" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
         <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
       </a>
     </div>
 
     <div class="navbar-search">
-      <input
-        type="text"
-        id="navbar-search-input"
-        class="navbar-search-input"
-        placeholder="Ticker..."
-        autocomplete="off"
-      />
+      <input type="text" id="navbar-search-input" class="navbar-search-input" placeholder="Ticker..." autocomplete="off" />
       <button class="navbar-search-btn" onclick="navbarSearch()">
         <i class="fas fa-search"></i>
       </button>
-      <div
-        id="navbar-search-suggestions"
-        class="navbar-search-suggestions"
-      ></div>
+      <div id="navbar-search-suggestions" class="navbar-search-suggestions"></div>
     </div>
 
     <div class="navbar-actions">
@@ -88,13 +56,9 @@
 
   <!-- CONTINUOUS INFINITE TICKER BAR -->
   <div class="market-ticker-bar">
-    <!-- overflow:hidden container -->
     <div class="ticker-track-outer">
-      <!-- Inner scrolling band — duplicated for seamless loop -->
       <div class="ticker-track" id="ticker-track">
-        <!-- SET A: will be populated by JS -->
         <div class="ticker-set" id="ticker-set-a"></div>
-        <!-- SET B: exact duplicate for seamless loop -->
         <div class="ticker-set" id="ticker-set-b"></div>
       </div>
     </div>
@@ -111,24 +75,15 @@
       </button>
     </div>
     <nav class="mobile-nav-links">
-      <a href="/" class="mobile-nav-link"
-        ><i class="fas fa-home"></i><span>Accueil</span></a
-      >
-      <a href="/analyse" class="mobile-nav-link"
-        ><i class="fas fa-search"></i><span>Analyse</span></a
-      >
-      <a href="/portefeuille" class="mobile-nav-link"
-        ><i class="fas fa-folder"></i><span>Portefeuille</span></a
-      >
-      <a href="/dashboard" class="mobile-nav-link"
-        ><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a
-      >
+      <a href="/" class="mobile-nav-link"><i class="fas fa-home"></i><span>Accueil</span></a>
+      <a href="/analyse" class="mobile-nav-link"><i class="fas fa-search"></i><span>Analyse</span></a>
+      <a href="/portefeuille" class="mobile-nav-link"><i class="fas fa-folder"></i><span>Portefeuille</span></a>
+      <a href="/dashboard" class="mobile-nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
     </nav>
   </div>
 </div>
 
 <style>
-  /* ---- TICKER INFINITE SCROLL CSS ---- */
   .market-ticker-bar {
     background: rgba(0, 0, 0, 0.25);
     border-top: 1px solid rgba(255, 255, 255, 0.06);
@@ -136,120 +91,45 @@
     overflow: hidden;
     position: relative;
   }
-
-  /* Left/right fade masks */
   .market-ticker-bar::before,
   .market-ticker-bar::after {
     content: "";
     position: absolute;
-    top: 0;
-    bottom: 0;
+    top: 0; bottom: 0;
     width: 60px;
     z-index: 2;
     pointer-events: none;
   }
   .market-ticker-bar::before {
     left: 0;
-    background: linear-gradient(
-      to right,
-      var(--bg-primary, #0d1117),
-      transparent
-    );
+    background: linear-gradient(to right, var(--bg-primary, #0d1117), transparent);
   }
   .market-ticker-bar::after {
     right: 0;
-    background: linear-gradient(
-      to left,
-      var(--bg-primary, #0d1117),
-      transparent
-    );
+    background: linear-gradient(to left, var(--bg-primary, #0d1117), transparent);
   }
-
-  .ticker-track-outer {
-    display: flex;
-    align-items: center;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  /* The scrolling band: both sets side by side */
-  .ticker-track {
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
-    /* Animation is set by JS once we know the width */
-    will-change: transform;
-  }
-
-  .ticker-set {
-    display: flex;
-    align-items: center;
-    gap: 0;
-  }
-
-  /* Each individual stock item */
+  .ticker-track-outer { display: flex; align-items: center; height: 100%; overflow: hidden; }
+  .ticker-track { display: flex; align-items: center; white-space: nowrap; will-change: transform; }
+  .ticker-set { display: flex; align-items: center; gap: 0; }
   .ticker-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+    display: inline-flex; align-items: center; gap: 0.5rem;
     padding: 0 1.5rem;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    cursor: pointer;
-    white-space: nowrap;
+    font-size: 0.8125rem; font-weight: 500;
+    cursor: pointer; white-space: nowrap;
     border-right: 1px solid rgba(255, 255, 255, 0.06);
-    height: 36px;
-    transition: background 0.2s;
+    height: 36px; transition: background 0.2s;
   }
+  .ticker-item:hover { background: rgba(255, 255, 255, 0.04); }
+  .ticker-symbol { font-family: var(--font-mono, "JetBrains Mono", monospace); font-weight: 700; color: var(--text-primary, #e8eaed); font-size: 0.8125rem; }
+  .ticker-price { font-family: var(--font-mono, "JetBrains Mono", monospace); color: var(--text-secondary, #9ca3af); font-size: 0.8125rem; }
+  .ticker-change { font-family: var(--font-mono, "JetBrains Mono", monospace); font-size: 0.75rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+  .ticker-change.positive { color: #00e676; background: rgba(0, 230, 118, 0.1); }
+  .ticker-change.negative { color: #ff3366; background: rgba(255, 51, 102, 0.1); }
+  .ticker-change.loading { color: var(--text-tertiary, #6b7280); background: transparent; }
 
-  .ticker-item:hover {
-    background: rgba(255, 255, 255, 0.04);
-  }
-
-  .ticker-symbol {
-    font-family: var(--font-mono, "JetBrains Mono", monospace);
-    font-weight: 700;
-    color: var(--text-primary, #e8eaed);
-    font-size: 0.8125rem;
-  }
-
-  .ticker-price {
-    font-family: var(--font-mono, "JetBrains Mono", monospace);
-    color: var(--text-secondary, #9ca3af);
-    font-size: 0.8125rem;
-  }
-
-  .ticker-change {
-    font-family: var(--font-mono, "JetBrains Mono", monospace);
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 4px;
-  }
-
-  .ticker-change.positive {
-    color: #00e676;
-    background: rgba(0, 230, 118, 0.1);
-  }
-
-  .ticker-change.negative {
-    color: #ff3366;
-    background: rgba(255, 51, 102, 0.1);
-  }
-
-  .ticker-change.loading {
-    color: var(--text-tertiary, #6b7280);
-    background: transparent;
-  }
-
-  /* The CSS animation — JS sets the actual duration */
   @keyframes ticker-scroll {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(-50%);
-    }
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
   }
 </style>
 
@@ -257,7 +137,6 @@
   (function () {
     "use strict";
 
-    /* ---------- CONFIG ---------- */
     const TICKERS = [
       { symbol: "NASDAQ", api: "^IXIC" },
       { symbol: "S&P 500", api: "^GSPC" },
@@ -270,23 +149,16 @@
       { symbol: "AMZN", api: "AMZN" },
       { symbol: "TTE.PA", api: "TTE.PA" },
     ];
-    const REFRESH_INTERVAL = 30000; // 30s
-    const SCROLL_SPEED_PX_PER_SEC = 40; // pixels per second
+    const REFRESH_INTERVAL = 30000;
+    const SCROLL_SPEED_PX_PER_SEC = 40;
 
-    /* ---------- BUILD INITIAL ITEMS ---------- */
-    const prices = {}; // symbol -> { price, changePercent }
+    const prices = {};
 
     function buildItem(t) {
       const p = prices[t.api];
       const priceText = p ? "$" + p.price.toFixed(2) : "...";
-      const changeText = p
-        ? (p.changePercent >= 0 ? "+" : "") + p.changePercent.toFixed(2) + "%"
-        : "...";
-      const changeClass = p
-        ? p.changePercent >= 0
-          ? "positive"
-          : "negative"
-        : "loading";
+      const changeText = p ? (p.changePercent >= 0 ? "+" : "") + p.changePercent.toFixed(2) + "%" : "...";
+      const changeClass = p ? (p.changePercent >= 0 ? "positive" : "negative") : "loading";
       return `<div class="ticker-item" onclick="window.location.href='/analyse?ticker=${t.api}'" title="${t.symbol}">
             <span class="ticker-symbol">${t.symbol}</span>
             <span class="ticker-price" id="tp-${t.api}">${priceText}</span>
@@ -299,73 +171,48 @@
       const setA = document.getElementById("ticker-set-a");
       const setB = document.getElementById("ticker-set-b");
       if (setA) setA.innerHTML = html;
-      if (setB) setB.innerHTML = html; // exact duplicate for seamless wrap
+      if (setB) setB.innerHTML = html;
     }
 
     function startAnimation() {
       const setA = document.getElementById("ticker-set-a");
       const track = document.getElementById("ticker-track");
       if (!setA || !track) return;
-
-      // Width of one set
       const setWidth = setA.scrollWidth;
-      if (setWidth === 0) {
-        setTimeout(startAnimation, 100);
-        return;
-      }
-
-      // Duration so it scrolls at constant speed
+      if (setWidth === 0) { setTimeout(startAnimation, 100); return; }
       const duration = setWidth / SCROLL_SPEED_PX_PER_SEC;
-
-      // Apply CSS animation to the track
       track.style.animation = `ticker-scroll ${duration}s linear infinite`;
     }
 
-    /* ---------- FETCH PRICES ---------- */
     async function fetchPrice(api) {
       try {
         const r = await fetch("/api/quote/" + encodeURIComponent(api));
         if (!r.ok) return null;
         const d = await r.json();
-        return d && d.price != null
-          ? { price: d.price, changePercent: d.changePercent || 0 }
-          : null;
-      } catch (e) {
-        return null;
-      }
+        return d && d.price != null ? { price: d.price, changePercent: d.changePercent || 0 } : null;
+      } catch (e) { return null; }
     }
 
     async function refreshAll() {
-      await Promise.all(
-        TICKERS.map(async (t) => {
-          const data = await fetchPrice(t.api);
-          if (!data) return;
-          prices[t.api] = data;
-
-          // Update DOM elements in BOTH sets
-          document
-            .querySelectorAll(`#tp-${CSS.escape(t.api)}`)
-            .forEach((el) => {
-              el.textContent = "$" + data.price.toFixed(2);
-            });
-          document
-            .querySelectorAll(`#tc-${CSS.escape(t.api)}`)
-            .forEach((el) => {
-              const isPos = data.changePercent >= 0;
-              el.textContent =
-                (isPos ? "+" : "") + data.changePercent.toFixed(2) + "%";
-              el.className =
-                "ticker-change " + (isPos ? "positive" : "negative");
-            });
-        }),
-      );
+      await Promise.all(TICKERS.map(async (t) => {
+        const data = await fetchPrice(t.api);
+        if (!data) return;
+        prices[t.api] = data;
+        document.querySelectorAll(`#tp-${CSS.escape(t.api)}`).forEach((el) => {
+          el.textContent = "$" + data.price.toFixed(2);
+        });
+        document.querySelectorAll(`#tc-${CSS.escape(t.api)}`).forEach((el) => {
+          const isPos = data.changePercent >= 0;
+          el.textContent = (isPos ? "+" : "") + data.changePercent.toFixed(2) + "%";
+          el.className = "ticker-change " + (isPos ? "positive" : "negative");
+        });
+      }));
     }
 
-    /* ---------- INIT ---------- */
     document.addEventListener("DOMContentLoaded", function () {
       populateSets();
       startAnimation();
-      refreshAll(); // first real fetch
+      refreshAll();
       setInterval(refreshAll, REFRESH_INTERVAL);
     });
 
@@ -379,29 +226,20 @@
     const searchInput = document.getElementById("navbar-search-input");
     if (searchInput) {
       searchInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          navbarSearch();
-        }
+        if (e.key === "Enter") { e.preventDefault(); navbarSearch(); }
       });
       let searchTimer;
       searchInput.addEventListener("input", function () {
         clearTimeout(searchTimer);
         const q = this.value.trim();
-        if (q.length < 2) {
-          hideNavSuggestions();
-          return;
-        }
+        if (q.length < 2) { hideNavSuggestions(); return; }
         searchTimer = setTimeout(async () => {
           try {
             const r = await fetch("/api/search?q=" + encodeURIComponent(q));
             const d = await r.json();
-            if (d.suggestions && d.suggestions.length)
-              showNavSuggestions(d.suggestions);
+            if (d.suggestions && d.suggestions.length) showNavSuggestions(d.suggestions);
             else hideNavSuggestions();
-          } catch (e) {
-            hideNavSuggestions();
-          }
+          } catch (e) { hideNavSuggestions(); }
         }, 300);
       });
     }
@@ -409,16 +247,13 @@
     function showNavSuggestions(items) {
       const c = document.getElementById("navbar-search-suggestions");
       if (!c) return;
-      c.innerHTML = items
-        .slice(0, 5)
-        .map((item) => {
-          const sym = item.ticker || item.symbol || "";
-          return `<div class="suggestion-item" onclick="window.location.href='/analyse?ticker=${sym}'">
+      c.innerHTML = items.slice(0, 5).map((item) => {
+        const sym = item.ticker || item.symbol || "";
+        return `<div class="suggestion-item" onclick="window.location.href='/analyse?ticker=${sym}'">
                 <span class="suggestion-ticker">${sym}</span>
                 <span class="suggestion-name">${item.name || ""}</span>
             </div>`;
-        })
-        .join("");
+      }).join("");
       c.classList.add("active");
     }
 
@@ -443,8 +278,7 @@
       themeBtn.addEventListener("click", function () {
         document.body.classList.toggle("light-mode");
         const light = document.body.classList.contains("light-mode");
-        if (themeIcon)
-          themeIcon.className = "fas fa-" + (light ? "sun" : "moon");
+        if (themeIcon) themeIcon.className = "fas fa-" + (light ? "sun" : "moon");
         localStorage.setItem("theme", light ? "light" : "dark");
       });
     }
@@ -453,22 +287,8 @@
     const mobileBtn = document.getElementById("mobile-menu-btn");
     const overlay = document.getElementById("mobile-nav-overlay");
     const closeBtn = document.getElementById("close-mobile-nav");
-    if (mobileBtn)
-      mobileBtn.addEventListener("click", () => {
-        overlay.classList.add("active");
-        document.body.style.overflow = "hidden";
-      });
-    if (closeBtn)
-      closeBtn.addEventListener("click", () => {
-        overlay.classList.remove("active");
-        document.body.style.overflow = "";
-      });
-    if (overlay)
-      overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) {
-          overlay.classList.remove("active");
-          document.body.style.overflow = "";
-        }
-      });
+    if (mobileBtn) mobileBtn.addEventListener("click", () => { overlay.classList.add("active"); document.body.style.overflow = "hidden"; });
+    if (closeBtn) closeBtn.addEventListener("click", () => { overlay.classList.remove("active"); document.body.style.overflow = ""; });
+    if (overlay) overlay.addEventListener("click", (e) => { if (e.target === overlay) { overlay.classList.remove("active"); document.body.style.overflow = ""; } });
   })();
 </script>
